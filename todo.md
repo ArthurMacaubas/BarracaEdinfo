@@ -62,3 +62,7 @@
 - [x] Testar o rearmamento com novo baseline e novo disparo para a mesma meta
 - [x] Validar a filtragem pública e a edição, pausa e reativação de patrocinadores
 - [x] Garantir no banco um único alerta para cada combinação de meta e rodada
+- [x] Adicionar animação de confetes ao anúncio público de meta batida
+- [x] Transformar patrocinadores em carrossel ampliado e contínuo na tela pública
+- [x] Refinar a identidade visual e a hierarquia da tela pública para segundo monitor
+- [x] Validar visualmente a celebração, o carrossel e os estados de exibição pública

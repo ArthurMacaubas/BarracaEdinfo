@@ -140,6 +140,21 @@
     background-image: linear-gradient(oklch(0.82 0.025 70 / 20%) 1px, transparent 1px), linear-gradient(90deg, oklch(0.82 0.025 70 / 20%) 1px, transparent 1px);
     background-size: 24px 24px;
   }
+  .public-stage {
+    background-image: radial-gradient(circle at 50% 10%, oklch(0.54 0.16 48 / 32%), transparent 28%), linear-gradient(oklch(0.82 0.025 70 / 15%) 1px, transparent 1px), linear-gradient(90deg, oklch(0.82 0.025 70 / 15%) 1px, transparent 1px);
+    background-size: auto, 28px 28px, 28px 28px;
+  }
+  .public-vignette { background-image: radial-gradient(ellipse at 50% 45%, oklch(0.34 0.08 48 / 28%), transparent 58%); }
+  .public-logo, .goal-radiance { box-shadow: 0 0 0 7px oklch(0.78 0.18 66 / 10%), 0 0 52px oklch(0.74 0.17 58 / 34%); }
+  .ticket-glow { box-shadow: 0 0 0 10px oklch(0.75 0.17 56 / 6%), 0 0 110px oklch(0.64 0.19 45 / 34%); }
+  .sponsor-track { display: flex; width: max-content; gap: 1.25rem; padding: 0 .75rem; animation: sponsor-marquee 24s linear infinite; }
+  .sponsor-card { display: grid; flex: 0 0 auto; place-items: center; border: 1px solid oklch(1 0 0 / 12%); border-radius: 1rem; background: oklch(1 0 0 / 8%); padding: .45rem .9rem; }
+  .confetti-burst { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+  .confetti-piece { position: absolute; width: 12px; height: 19px; border-radius: 3px; opacity: 0; animation: confetti-fall 2100ms cubic-bezier(.15,.75,.25,1) var(--delay) both; }
+  .confetti-ribbon { width: 7px; height: 28px; border-radius: 999px; }
+  @keyframes confetti-fall { 0% { opacity: 0; transform: translate3d(0,-40px,0) rotate(0); } 10% { opacity: 1; } 100% { opacity: 0; transform: translate3d(var(--drift), 88vh, 0) rotate(var(--turn)); } }
+  @keyframes sponsor-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .sponsor-track, .confetti-piece { animation: none; } .confetti-piece { display: none; } }
 }
 
 @layer components {
