@@ -27,6 +27,13 @@ try {
     await page.screenshot({ path: screenshotPath });
     const layout = await page.evaluate(() => {
       const stage = document.querySelector(".public-stage");
+      const promotion = document.querySelector(".promotion-announcement");
+      const reward = document.querySelector(".promotion-reward");
+      const rewardCopy = reward?.querySelector("p");
+      const toBounds = (element) => element ? (() => {
+        const { top, right, bottom, left, width, height } = element.getBoundingClientRect();
+        return { top, right, bottom, left, width, height };
+      })() : null;
       return {
         innerHeight: window.innerHeight,
         documentHeight: document.documentElement.scrollHeight,
@@ -34,11 +41,22 @@ try {
         stageHeight: stage?.getBoundingClientRect().height ?? 0,
         bodyOverflowY: getComputedStyle(document.body).overflowY,
         stageOverflowY: stage ? getComputedStyle(stage).overflowY : "missing",
+        promotionBounds: toBounds(promotion),
+        rewardBounds: toBounds(reward),
+        rewardCopyBounds: toBounds(rewardCopy),
       };
     });
     const exceedsViewport = layout.documentHeight > layout.innerHeight + 1 || layout.bodyHeight > layout.innerHeight + 1 || layout.stageHeight > layout.innerHeight + 1;
     const allowsVerticalScroll = layout.bodyOverflowY === "scroll" || layout.bodyOverflowY === "auto" || layout.stageOverflowY === "scroll" || layout.stageOverflowY === "auto";
-    if (exceedsViewport || allowsVerticalScroll) {
+    const promotionIsVisible = !layout.promotionBounds || (
+      layout.promotionBounds.top >= 0 &&
+      layout.promotionBounds.bottom <= layout.innerHeight &&
+      layout.rewardBounds?.top >= 0 &&
+      layout.rewardBounds?.bottom <= layout.innerHeight &&
+      layout.rewardCopyBounds?.top >= layout.rewardBounds.top &&
+      layout.rewardCopyBounds?.bottom <= layout.rewardBounds.bottom
+    );
+    if (exceedsViewport || allowsVerticalScroll || !promotionIsVisible) {
       throw new Error(`Layout público excede o monitor em ${route}: ${JSON.stringify(layout)}`);
     }
     results.push({ state: name, route, screenshotPath, ...layout });

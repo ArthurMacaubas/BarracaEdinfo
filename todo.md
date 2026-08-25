@@ -98,3 +98,7 @@
 - [x] Executar medição automatizada de overflow nos estados públicos em 1280x720
 - [x] Registrar evidência visual dirigida dos três estados públicos sem rolagem
 - [x] Arquivar relatório inspecionável das capturas e medições da tela pública fixa
+- [x] Ampliar os cartões e as marcas dos patrocinadores no carrossel público
+- [x] Validar que o aumento dos patrocinadores preserva a tela fixa em 1280x720
+- [x] Corrigir o corte da mensagem promocional causado pelo aumento do rodapé de patrocinadores
+- [x] Medir os limites do anúncio promocional e comprovar que sua mensagem cabe no viewport

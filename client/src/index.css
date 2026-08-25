@@ -159,11 +159,14 @@
   .public-vignette > section .confetti-burst { position: absolute; }
   .public-vignette > section > div > p:first-of-type { margin-top: clamp(.5rem, 1.8vh, 1rem); }
   .public-vignette > section > div > p:last-of-type { margin-top: clamp(.55rem, 1.6vh, 1rem); }
+  .public-vignette > section .promotion-announcement h1 { font-size: clamp(2.45rem, 7vh, 5.2rem) !important; }
+  .public-vignette > section .promotion-announcement .promotion-reward { margin-top: clamp(.65rem, 1.5vh, 1rem) !important; padding-block: clamp(.85rem, 1.8vh, 1.2rem) !important; }
+  .public-vignette > section .promotion-announcement .promotion-reward p { font-size: clamp(1.55rem, 3.6vh, 2.45rem) !important; line-height: 1.18 !important; }
   .public-vignette > section img[alt="QR Code PIX"] { width: clamp(10.5rem, 30vh, 20rem) !important; height: clamp(10.5rem, 30vh, 20rem) !important; }
-  .public-vignette > div:last-child { flex: 0 0 auto; max-height: 18vh; min-height: 0; overflow: hidden; padding-top: clamp(.5rem, 1.3vh, .9rem) !important; }
-  .public-vignette > div:last-child .sponsor-track { gap: .75rem; animation-duration: 28s; }
-  .public-vignette > div:last-child .sponsor-card { padding: .25rem .6rem; }
-  .public-vignette > div:last-child .sponsor-card img { width: clamp(7.5rem, 14vw, 13rem) !important; height: clamp(2.8rem, 7vh, 4.5rem) !important; }
+  .public-vignette > div:last-child { flex: 0 0 auto; max-height: 22vh; min-height: 0; overflow: hidden; padding-top: clamp(.5rem, 1.3vh, .9rem) !important; }
+  .public-vignette > div:last-child .sponsor-track { gap: 1rem; animation-duration: 30s; }
+  .public-vignette > div:last-child .sponsor-card { padding: .45rem 1rem; }
+  .public-vignette > div:last-child .sponsor-card img { width: clamp(10.5rem, 18vw, 17.5rem) !important; height: clamp(4rem, 11vh, 6rem) !important; }
   .public-logo, .goal-radiance { box-shadow: 0 0 0 7px oklch(0.78 0.18 66 / 10%), 0 0 52px oklch(0.74 0.17 58 / 34%); }
   .ticket-glow { box-shadow: 0 0 0 10px oklch(0.75 0.17 56 / 6%), 0 0 110px oklch(0.64 0.19 45 / 34%); }
   .sponsor-track { display: flex; width: max-content; gap: 1.25rem; padding: 0 .75rem; animation: sponsor-marquee 24s linear infinite; }
