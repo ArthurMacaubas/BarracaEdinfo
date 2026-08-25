@@ -57,7 +57,7 @@
 - [x] Permitir editar e ativar ou desativar patrocinadores já cadastrados
 - [x] Recuperar alertas de sirene pendentes ao iniciar o servidor, sem depender da tela pública
 - [x] Cobrir em testes o ciclo de meta, rearmamento, recuperação e campanha PIX
-- [ ] Validar visualmente a campanha PIX e o aviso de meta batida na tela pública
+- [x] Validar visualmente a campanha PIX e o aviso de meta batida na tela pública por meio das prévias de desenvolvimento
 - [x] Testar recuperação de sirene pendente, rearmamento e seleção de campanhas públicas
 - [x] Testar o rearmamento com novo baseline e novo disparo para a mesma meta
 - [x] Validar a filtragem pública e a edição, pausa e reativação de patrocinadores

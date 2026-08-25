@@ -15,10 +15,11 @@ const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL
 export default function PublicCalls() {
   const [, setLocation] = useLocation();
   const snapshot = trpc.operations.snapshot.useQuery(undefined, { refetchInterval: 500 });
+  const preview = import.meta.env.DEV ? new URLSearchParams(window.location.search).get("preview") : null;
   const ready = ((snapshot.data?.orders ?? []) as PublicOrder[]).filter(order => order.status === "READY");
   const sponsors = visibleSponsors((snapshot.data?.sponsors ?? []) as (Sponsor & { enabled?: boolean })[]);
-  const goalAlert = snapshot.data?.goalAlert as GoalAlert | null | undefined;
-  const pixCampaign = snapshot.data?.pixCampaign as PixCampaign | null | undefined;
+  const goalAlert = (preview === "goal" ? { id: -1, goalAmount: "500.00", salesAtTrigger: "500.00", message: "Pesa o cachorro-quente no local de retirada." } : snapshot.data?.goalAlert) as GoalAlert | null | undefined;
+  const pixCampaign = (preview === "pix" ? { id: -1, ticket: 99, pixPayload: "00020101021226880014br.gov.bcb.pix2563pix.example.com/pagamento/ifro520400005303986540510.005802BR5913Barraca IFRO6008Vilhena62070503***6304ABCD", activeUntil: new Date(Date.now() + 45_000) } : snapshot.data?.pixCampaign) as PixCampaign | null | undefined;
   const [sponsorIndex, setSponsorIndex] = useState(0);
   const [qrSource, setQrSource] = useState("");
   useEffect(() => { if (sponsors.length < 2) return; const timer = window.setInterval(() => setSponsorIndex(index => (index + 1) % sponsors.length), 5000); return () => window.clearInterval(timer); }, [sponsors.length]);
