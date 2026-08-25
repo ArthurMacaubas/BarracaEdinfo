@@ -178,4 +178,4 @@
 - [x] Documentar a conexão do Arduino e o firmware compatível com o controlador atual
 - [x] Adaptar o firmware e o guia para fita LED e sirene acionadas por dois relés
 - [x] Criar prompt de design para uma IA redesenhar a interface da Barraca Agostina
-- [ ] Publicar o código atual no repositório GitHub arthurmacaubas/barracaEdinfo
+- [x] Publicar o código atual no repositório GitHub arthurmacaubas/barracaEdinfo
