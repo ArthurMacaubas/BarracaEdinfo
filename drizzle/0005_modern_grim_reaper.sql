@@ -1,0 +1,1 @@
+ALTER TABLE `goal_alerts` ADD CONSTRAINT `goal_alerts_goal_cycle_unique` UNIQUE(`goalAmount`,`cycleKey`);

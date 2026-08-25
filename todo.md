@@ -42,3 +42,23 @@
 
 - Requisitos consolidados a partir do prompt principal e da solicitação de implementação.
 - [x] Verificar e aplicar a edição visual manual indicada para o título da interface — o título foi localizado e a anotação “perfeito” não solicitou mudança adicional
+- [x] Remover a rota, a navegação e a tela de Produção do fluxo operacional
+- [x] Reorganizar o fluxo principal para Cadastro, Hardware, Pedido e Dashboard
+- [x] Criar configuração persistente de meta de vendas e mensagem pública de retirada
+- [x] Acionar aviso público de meta batida antes da sirene, uma única vez por alcance de meta
+- [x] Controlar a sirene automaticamente quando o total de vendas atingir a meta configurada
+- [x] Exibir QR Code PIX temporariamente na tela pública após confirmação de pedido PIX
+- [x] Gerenciar patrocinadores configuráveis com imagens para rodízio na tela pública
+- [x] Criar armazenamento e APIs para patrocinadores e estado da campanha pública
+- [x] Testar regras de metas, aviso público, sirene, campanha QR PIX e recuperação de patrocinadores
+- [x] Permitir rearmar a meta para uma nova rodada de vendas com o mesmo valor
+- [x] Reprocessar alertas de meta pendentes para acionar a sirene após reinicialização
+- [x] Testar a sequência meta pública, rearmamento e sirene pendente
+- [x] Permitir editar e ativar ou desativar patrocinadores já cadastrados
+- [x] Recuperar alertas de sirene pendentes ao iniciar o servidor, sem depender da tela pública
+- [x] Cobrir em testes o ciclo de meta, rearmamento, recuperação e campanha PIX
+- [ ] Validar visualmente a campanha PIX e o aviso de meta batida na tela pública
+- [x] Testar recuperação de sirene pendente, rearmamento e seleção de campanhas públicas
+- [x] Testar o rearmamento com novo baseline e novo disparo para a mesma meta
+- [x] Validar a filtragem pública e a edição, pausa e reativação de patrocinadores
+- [x] Garantir no banco um único alerta para cada combinação de meta e rodada

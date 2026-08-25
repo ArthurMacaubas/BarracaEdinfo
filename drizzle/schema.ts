@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean } from "drizzle-orm/mysql-core";
+import { boolean, decimal, int, mysqlEnum, mysqlTable, text, timestamp, unique, varchar } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -73,6 +73,35 @@ export const hardwareCommands = mysqlTable("hardware_commands", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const sponsors = mysqlTable("sponsors", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  imageUrl: text("imageUrl").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const goalAlerts = mysqlTable("goal_alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  goalAmount: decimal("goalAmount", { precision: 10, scale: 2 }).notNull(),
+  cycleKey: varchar("cycleKey", { length: 64 }).notNull().default("initial"),
+  salesAtTrigger: decimal("salesAtTrigger", { precision: 10, scale: 2 }).notNull(),
+  message: text("message").notNull(),
+  announcedAt: timestamp("announcedAt").defaultNow().notNull(),
+  sirenSentAt: timestamp("sirenSentAt"),
+}, table => [unique("goal_alerts_goal_cycle_unique").on(table.goalAmount, table.cycleKey)]);
+
+export const publicPixCampaigns = mysqlTable("public_pix_campaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull().references(() => orders.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  ticket: int("ticket").notNull(),
+  pixPayload: text("pixPayload").notNull(),
+  activeUntil: timestamp("activeUntil").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -81,3 +110,5 @@ export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type OperationEvent = typeof operationEvents.$inferSelect;
+export type Sponsor = typeof sponsors.$inferSelect;
+export type GoalAlert = typeof goalAlerts.$inferSelect;

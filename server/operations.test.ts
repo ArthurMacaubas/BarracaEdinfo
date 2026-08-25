@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateOrderTotal, canTransitionOrder, isDuplicateRequestKey, isPaymentMethod } from "./operations";
+import { calculateOrderTotal, canTransitionOrder, goalProgress, isDuplicateRequestKey, isPaymentMethod, shouldTriggerGoal } from "./operations";
 
 describe("ciclo de pedidos", () => {
   it("permite somente as transições operacionais esperadas", () => {
@@ -20,5 +20,14 @@ describe("ciclo de pedidos", () => {
     expect(isPaymentMethod("TRANSFER")).toBe(false);
     expect(isDuplicateRequestKey([{ requestKey: "caixa-001" }], "caixa-001")).toBe(true);
     expect(isDuplicateRequestKey([{ requestKey: "caixa-001" }], "caixa-002")).toBe(false);
+  });
+
+  it("dispara a meta somente ao alcançar um valor válido ainda não anunciado", () => {
+    expect(shouldTriggerGoal(120, 100, false)).toBe(true);
+    expect(shouldTriggerGoal(99.99, 100, false)).toBe(false);
+    expect(shouldTriggerGoal(120, 100, true)).toBe(false);
+    expect(shouldTriggerGoal(120, 0, false)).toBe(false);
+    expect(goalProgress(250, 200)).toBe(50);
+    expect(shouldTriggerGoal(goalProgress(320, 200), 100, false)).toBe(true);
   });
 });
