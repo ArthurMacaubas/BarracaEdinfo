@@ -143,8 +143,27 @@
   .public-stage {
     background-image: radial-gradient(circle at 50% 10%, oklch(0.54 0.16 48 / 32%), transparent 28%), linear-gradient(oklch(0.82 0.025 70 / 15%) 1px, transparent 1px), linear-gradient(90deg, oklch(0.82 0.025 70 / 15%) 1px, transparent 1px);
     background-size: auto, 28px 28px, 28px 28px;
+    height: 100dvh;
+    overflow: hidden;
   }
-  .public-vignette { background-image: radial-gradient(ellipse at 50% 45%, oklch(0.34 0.08 48 / 28%), transparent 58%); }
+  .public-vignette { height: calc(100dvh - 2.5rem); overflow: hidden; background-image: radial-gradient(ellipse at 50% 45%, oklch(0.34 0.08 48 / 28%), transparent 58%); }
+  body:has(.public-stage) { overflow: hidden; }
+  .public-vignette > header { flex: 0 0 auto; padding-bottom: clamp(.6rem, 1.8vh, 1.25rem); }
+  .public-vignette > section { min-height: 0; padding-block: clamp(.75rem, 2.4vh, 2rem); }
+  .public-vignette > section > div { max-height: 100%; }
+  .public-vignette > section .goal-radiance { width: clamp(3.75rem, 8vh, 5.5rem); height: clamp(3.75rem, 8vh, 5.5rem); border-radius: 1.5rem; }
+  .public-vignette > section .goal-radiance svg { width: clamp(1.9rem, 4vh, 3rem); height: clamp(1.9rem, 4vh, 3rem); }
+  .public-vignette > section h1 { margin-top: clamp(.55rem, 1.8vh, 1.25rem); font-size: clamp(2.7rem, 8.2vh, 6.4rem) !important; line-height: .92 !important; }
+  .public-vignette > section h1 + div { margin-top: clamp(.85rem, 2vh, 1.4rem); }
+  .public-vignette > section p { line-height: 1.25; }
+  .public-vignette > section .confetti-burst { position: absolute; }
+  .public-vignette > section > div > p:first-of-type { margin-top: clamp(.5rem, 1.8vh, 1rem); }
+  .public-vignette > section > div > p:last-of-type { margin-top: clamp(.55rem, 1.6vh, 1rem); }
+  .public-vignette > section img[alt="QR Code PIX"] { width: clamp(10.5rem, 30vh, 20rem) !important; height: clamp(10.5rem, 30vh, 20rem) !important; }
+  .public-vignette > div:last-child { flex: 0 0 auto; max-height: 18vh; min-height: 0; overflow: hidden; padding-top: clamp(.5rem, 1.3vh, .9rem) !important; }
+  .public-vignette > div:last-child .sponsor-track { gap: .75rem; animation-duration: 28s; }
+  .public-vignette > div:last-child .sponsor-card { padding: .25rem .6rem; }
+  .public-vignette > div:last-child .sponsor-card img { width: clamp(7.5rem, 14vw, 13rem) !important; height: clamp(2.8rem, 7vh, 4.5rem) !important; }
   .public-logo, .goal-radiance { box-shadow: 0 0 0 7px oklch(0.78 0.18 66 / 10%), 0 0 52px oklch(0.74 0.17 58 / 34%); }
   .ticket-glow { box-shadow: 0 0 0 10px oklch(0.75 0.17 56 / 6%), 0 0 110px oklch(0.64 0.19 45 / 34%); }
   .sponsor-track { display: flex; width: max-content; gap: 1.25rem; padding: 0 .75rem; animation: sponsor-marquee 24s linear infinite; }

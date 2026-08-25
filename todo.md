@@ -90,3 +90,11 @@
 - [x] Validar a exibição do QR no segundo monitor a partir do comando do caixa
 - [x] Testar a persistência de public_pix_manual_display acionada pelo caixa
 - [x] Validar a decisão de exibição do QR manual no segundo monitor pela cobertura automatizada
+- [x] Remover a barra de rolagem da tela pública
+- [x] Ajustar QR, campanha e patrocinadores para caber em uma única tela pública
+- [x] Validar os estados públicos em resolução de segundo monitor sem rolagem
+- [x] Verificar por captura integral que a tela pública não excede a altura do monitor em todos os estados
+- [x] Confirmar visualmente que meta, PIX e promoção não têm conteúdo cortado em 1280x720
+- [x] Executar medição automatizada de overflow nos estados públicos em 1280x720
+- [x] Registrar evidência visual dirigida dos três estados públicos sem rolagem
+- [x] Arquivar relatório inspecionável das capturas e medições da tela pública fixa
