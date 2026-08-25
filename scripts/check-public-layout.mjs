@@ -26,6 +26,13 @@ try {
     await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle" });
     const screenshotPath = join(evidenceDirectory, `tela-publica-${name}-1280x720.png`);
     await page.screenshot({ path: screenshotPath });
+    const sponsorBefore = name === "promocao" ? (await page.locator(".sponsor-feature-card p").textContent())?.trim() ?? "" : "";
+    let sponsorAfter = "";
+    if (name === "promocao") {
+      await page.waitForTimeout(6_200);
+      sponsorAfter = (await page.locator(".sponsor-feature-card p").textContent())?.trim() ?? "";
+      await page.screenshot({ path: join(evidenceDirectory, "tela-publica-promocao-destaque-rotacionado-1280x720.png") });
+    }
     const layout = await page.evaluate(() => {
       const stage = document.querySelector(".public-stage");
       const canvas = document.querySelector(".public-canvas");
@@ -63,6 +70,8 @@ try {
         welcomeCardBounds: toBounds(welcomeCard),
       };
     });
+    layout.sponsorBefore = sponsorBefore;
+    layout.sponsorAfter = sponsorAfter;
     const exceedsViewport = layout.documentHeight > layout.innerHeight + 1 || layout.bodyHeight > layout.innerHeight + 1 || layout.stageHeight > layout.innerHeight + 1;
     const allowsVerticalScroll = layout.bodyOverflowY === "scroll" || layout.bodyOverflowY === "auto" || layout.stageOverflowY === "scroll" || layout.stageOverflowY === "auto";
     const isInsideCanvas = (bounds) => !bounds || !layout.canvasBounds || (
@@ -80,7 +89,8 @@ try {
       layout.rewardCopyBounds?.bottom <= layout.rewardBounds.bottom
     );
     const welcomeIsVisible = !layout.welcomeCardBounds || isInsideCanvas(layout.welcomeCardBounds);
-    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !promotionIsVisible || !welcomeIsVisible) {
+    const sponsorRotates = name !== "promocao" || (Boolean(layout.sponsorBefore) && layout.sponsorBefore !== layout.sponsorAfter);
+    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates) {
       throw new Error(`Layout público excede o monitor em ${route}: ${JSON.stringify(layout)}`);
     }
     results.push({ state: name, route, screenshotPath, ...layout });

@@ -18,22 +18,29 @@ export default function SponsorControls({ sponsors, refresh }: { sponsors: Spons
 
 function PixPayloadControl({ refresh }: { refresh: () => void }) {
   const settingsQuery = trpc.operations.snapshot.useQuery(undefined, { refetchInterval: 6_000 });
-  const savedValue = ((settingsQuery.data?.settings ?? []) as Setting[]).find(setting => setting.key === "pix_payload")?.value ?? "";
+  const settings = (settingsQuery.data?.settings ?? []) as Setting[];
+  const savedValue = settings.find(setting => setting.key === "pix_payload")?.value ?? "";
+  const savedUseOrderAmount = settings.find(setting => setting.key === "pix_amount_from_order")?.value !== "false";
+  const savedFixedAmount = settings.find(setting => setting.key === "pix_fixed_amount")?.value ?? "";
   const [payload, setPayload] = useState("");
+  const [useOrderAmount, setUseOrderAmount] = useState(true);
+  const [fixedAmount, setFixedAmount] = useState("");
   const [dirty, setDirty] = useState(false);
   const save = trpc.operations.saveSetting.useMutation({
     onSuccess: () => { setDirty(false); toast.success("Código PIX copia e cola salvo com sucesso."); refresh(); },
     onError: error => toast.error(`Não foi possível salvar o PIX: ${error.message}`),
   });
 
-  useEffect(() => { if (!dirty) setPayload(savedValue); }, [savedValue, dirty]);
+  useEffect(() => { if (!dirty) { setPayload(savedValue); setUseOrderAmount(savedUseOrderAmount); setFixedAmount(savedFixedAmount); } }, [savedValue, savedUseOrderAmount, savedFixedAmount, dirty]);
   const submit = () => {
     const value = payload.trim();
     if (!value) { toast.error("Cole um código PIX antes de salvar."); return; }
     save.mutate({ key: "pix_payload", value });
+    save.mutate({ key: "pix_amount_from_order", value: useOrderAmount ? "true" : "false" });
+    save.mutate({ key: "pix_fixed_amount", value: fixedAmount.trim() || "0" });
   };
 
-  return <section className="mt-6 rounded-[2rem] border border-orange-200 bg-[linear-gradient(135deg,_#fff7eb,_#fffdfa)] p-6 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[.14em] text-orange-800">Pagamento</p><h2 className="font-display text-2xl font-bold text-stone-900">PIX copia e cola</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-stone-600">Este é o código usado para gerar o QR Code temporário na tela pública após um pedido PIX.</p></div><div className="rounded-xl border border-orange-200 bg-white px-3 py-2 text-xs font-bold text-orange-900">{savedValue ? "Código configurado" : "Ainda não configurado"}</div></div><div className="mt-5"><Label htmlFor="pix-payload-direct">Código PIX “copia e cola”</Label><Textarea id="pix-payload-direct" value={payload} onChange={event => { setPayload(event.target.value); setDirty(true); }} placeholder="Cole aqui o código PIX completo da barraca" className="mt-2 min-h-28 resize-y border-orange-200 bg-white font-mono text-xs leading-5" /></div><div className="mt-4 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-stone-500">Use o botão abaixo para gravar este código antes de começar as vendas.</p><Button disabled={save.isPending || !payload.trim()} onClick={submit} className="rounded-xl bg-[#9c321e] hover:bg-[#7f2819]">{save.isPending ? "Salvando código…" : <><Save className="mr-2 h-4 w-4" />Salvar código PIX</>}</Button></div></section>;
+  return <section className="mt-6 rounded-[2rem] border border-orange-200 bg-[linear-gradient(135deg,_#fff7eb,_#fffdfa)] p-6 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[.14em] text-orange-800">Pagamento</p><h2 className="font-display text-2xl font-bold text-stone-900">PIX copia e cola</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-stone-600">Este é o código usado para gerar o QR Code automático do pedido PIX na tela pública durante 20 segundos.</p></div><div className="rounded-xl border border-orange-200 bg-white px-3 py-2 text-xs font-bold text-orange-900">{savedValue ? "Código configurado" : "Ainda não configurado"}</div></div><div className="mt-5"><Label htmlFor="pix-payload-direct">Código PIX “copia e cola”</Label><Textarea id="pix-payload-direct" value={payload} onChange={event => { setPayload(event.target.value); setDirty(true); }} placeholder="Cole aqui o código PIX completo da barraca" className="mt-2 min-h-28 resize-y border-orange-200 bg-white font-mono text-xs leading-5" /></div><div className="mt-4 flex items-center justify-between rounded-2xl border border-orange-200 bg-white px-4 py-3"><div><p className="text-sm font-bold text-stone-900">Usar o total do pedido no QR automático</p><p className="mt-1 text-xs leading-5 text-stone-500">Quando o payload é compatível com o padrão PIX, o QR recebe o valor fixo daquela comanda.</p></div><Switch checked={useOrderAmount} onCheckedChange={checked => { setUseOrderAmount(checked); setDirty(true); }} /></div><div className="mt-3"><Label htmlFor="pix-fixed-amount">Valor PIX fixo opcional (R$)</Label><Input id="pix-fixed-amount" type="number" min="0.01" step="0.01" disabled={useOrderAmount} value={fixedAmount} onChange={event => { setFixedAmount(event.target.value); setDirty(true); }} placeholder="Ex.: 15,00" className="mt-1 border-orange-200 bg-white disabled:cursor-not-allowed disabled:bg-stone-100" /><p className="mt-1 text-xs leading-5 text-stone-500">Desative o uso do total da comanda para usar este valor em todos os QR Codes automáticos.</p></div><div className="mt-4 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-stone-500">O valor é aplicado apenas ao QR automático de cada pedido. O QR manual continua usando o código configurado.</p><Button disabled={save.isPending || !payload.trim() || (!useOrderAmount && (!fixedAmount || Number(fixedAmount) <= 0))} onClick={submit} className="rounded-xl bg-[#9c321e] hover:bg-[#7f2819]">{save.isPending ? "Salvando código…" : <><Save className="mr-2 h-4 w-4" />Salvar código PIX</>}</Button></div></section>;
 }
 
 function SponsorManager({ sponsors, refresh }: { sponsors: Sponsor[]; refresh: () => void }) {

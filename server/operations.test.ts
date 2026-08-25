@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateOrderTotal, canConfirmPixPayment, canTransitionOrder, goalProgress, isDuplicateRequestKey, isPaymentMethod, shouldTriggerGoal } from "./operations";
+import { calculateOrderTotal, canConfirmPixPayment, canTransitionOrder, goalProgress, isDuplicateRequestKey, isPaymentMethod, PIX_CAMPAIGN_WINDOW_MS, shouldTriggerGoal } from "./operations";
 
 describe("ciclo de pedidos", () => {
   it("permite somente as transições operacionais esperadas", () => {
@@ -36,5 +36,9 @@ describe("ciclo de pedidos", () => {
     expect(canConfirmPixPayment({ paymentMethod: "PIX", status: "CANCELLED", pixConfirmedAt: null })).toBe(false);
     expect(canConfirmPixPayment({ paymentMethod: "CARD", status: "NEW", pixConfirmedAt: null })).toBe(false);
     expect(canConfirmPixPayment({ paymentMethod: "PIX", status: "NEW", pixConfirmedAt: new Date() })).toBe(false);
+  });
+
+  it("limita a campanha PIX automática a vinte segundos", () => {
+    expect(PIX_CAMPAIGN_WINDOW_MS).toBe(20_000);
   });
 });

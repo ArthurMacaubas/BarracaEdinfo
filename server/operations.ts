@@ -2,13 +2,14 @@ import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { goalAlerts, operationEvents, operationSettings, orderItems, orders, products, publicPixCampaigns, sponsors } from "../drizzle/schema";
 import { getDb } from "./db";
 import { hardwareController } from "./hardware";
+import { applyPixAmount, canApplyPixAmount } from "./pixPayload";
 import { storagePut } from "./storage";
 
 export const ORDER_STATUSES = ["NEW", "PREPARING", "READY", "DELIVERED", "CANCELLED"] as const;
 export const PAYMENT_METHODS = ["PIX", "CASH", "CARD"] as const;
 export const GOAL_ALERT_WINDOW_MS = 8_000;
 export const GOAL_SIREN_DELAY_MS = 1_000;
-export const PIX_CAMPAIGN_WINDOW_MS = 45_000;
+export const PIX_CAMPAIGN_WINDOW_MS = 20_000;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export type CartItemInput = { productId: number; quantity: number };
@@ -61,7 +62,7 @@ async function evaluateGoalAfterSale() {
   return alertId;
 }
 
-async function createPixCampaign(orderId: number, ticket: number) { const db = await getDb(); if (!db) return; const settings = await db.select().from(operationSettings); const pixPayload = getSetting(settings, "pix_payload").trim(); if (!pixPayload) return; const activeUntil = new Date(Date.now() + PIX_CAMPAIGN_WINDOW_MS); await db.insert(publicPixCampaigns).values({ orderId, ticket, pixPayload, activeUntil }); await recordEvent("PUBLIC_PIX_CAMPAIGN_STARTED", "ORDER", orderId, { ticket, activeUntil: activeUntil.toISOString() }); }
+async function createPixCampaign(orderId: number, ticket: number, orderTotal: number) { const db = await getDb(); if (!db) return; const settings = await db.select().from(operationSettings); const configuredPayload = getSetting(settings, "pix_payload").trim(); if (!configuredPayload) return; const amountFromOrder = getSetting(settings, "pix_amount_from_order", "true") !== "false"; const fixedAmount = Number(getSetting(settings, "pix_fixed_amount", "0")); const requestedAmount = amountFromOrder ? orderTotal : fixedAmount; const amountApplied = canApplyPixAmount(configuredPayload) && Number.isFinite(requestedAmount) && requestedAmount > 0; const pixPayload = amountApplied ? applyPixAmount(configuredPayload, requestedAmount) : configuredPayload; const activeUntil = new Date(Date.now() + PIX_CAMPAIGN_WINDOW_MS); await db.insert(publicPixCampaigns).values({ orderId, ticket, pixPayload, activeUntil }); await recordEvent("PUBLIC_PIX_CAMPAIGN_STARTED", "ORDER", orderId, { ticket, total: orderTotal, amountApplied, appliedAmount: amountApplied ? requestedAmount : null, expiresInSeconds: PIX_CAMPAIGN_WINDOW_MS / 1000, activeUntil: activeUntil.toISOString() }); }
 
 export async function createOrder(input: { requestKey: string; paymentMethod: PaymentMethod; note?: string; items: CartItemInput[] }) {
   const db = await getDb();
@@ -78,7 +79,7 @@ export async function createOrder(input: { requestKey: string; paymentMethod: Pa
   const ticketResult = await db.select({ lastTicket: sql<number>`coalesce(max(${orders.ticket}), 0)` }).from(orders);
   const ticket = (ticketResult[0]?.lastTicket ?? 0) + 1;
   const result = await db.transaction(async tx => { const created = await tx.insert(orders).values({ ticket, requestKey: input.requestKey, paymentMethod: input.paymentMethod, total: total.toFixed(2), note: input.note?.trim() || null }); const orderId = Number(created[0].insertId); await tx.insert(orderItems).values(resolvedItems.map(item => ({ orderId, productId: item.product.id, productName: item.product.name, quantity: item.quantity, unitPrice: item.unitPrice.toFixed(2), subtotal: item.subtotal.toFixed(2) }))); await tx.insert(operationEvents).values({ type: "ORDER_CREATED", entityType: "ORDER", entityId: orderId, payload: JSON.stringify({ ticket, total, paymentMethod: input.paymentMethod }) }); return { id: orderId, ticket }; });
-  if (input.paymentMethod === "PIX") await createPixCampaign(result.id, result.ticket);
+  if (input.paymentMethod === "PIX") await createPixCampaign(result.id, result.ticket, total);
   await evaluateGoalAfterSale();
   const createdOrder = await db.select().from(orders).where(eq(orders.id, result.id)).limit(1);
   return { order: createdOrder[0]!, duplicated: false };

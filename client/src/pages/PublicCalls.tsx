@@ -2,7 +2,7 @@ import { visibleSponsors } from "@/lib/publicCampaign";
 import { getManualPublicPixPayload, publicPixCampaign, type PixSetting } from "@/lib/pixPayload";
 import { trpc } from "@/lib/trpc";
 import QRCode from "qrcode";
-import { BellRing, ChefHat, Flame, Gift, QrCode, Sparkles, Target, Wifi, Zap } from "lucide-react";
+import { BellRing, Flame, Gift, QrCode, Sparkles, Target, Wifi, Zap } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { useLocation } from "wouter";
 import "./public-screen.css";
@@ -25,11 +25,11 @@ export default function PublicCalls() {
   ] : [];
   const sponsors = visibleSponsors((previewSponsors.length ? previewSponsors : snapshot.data?.sponsors ?? []) as (Sponsor & { enabled?: boolean })[]);
   const goalAlert = (preview === "goal" ? { id: -1, goalAmount: "500.00", salesAtTrigger: "500.00", message: "Pesa o cachorro-quente no local de retirada." } : snapshot.data?.goalAlert) as GoalAlert | null | undefined;
-  const pixCampaign = (preview === "pix" ? { id: -1, ticket: 99, pixPayload: "00020101021226880014br.gov.bcb.pix2563pix.example.com/pagamento/ifro520400005303986540510.005802BR5913Barraca IFRO6008Vilhena62070503***6304ABCD", activeUntil: new Date(Date.now() + 45_000) } : snapshot.data?.pixCampaign) as PixCampaign | null | undefined;
+  const pixCampaign = (preview === "pix" ? { id: -1, ticket: 99, pixPayload: "00020101021226260014br.gov.bcb.pix0104test5204000053039865802BR5903ABC6003RIO62070503***6304ABCD", activeUntil: new Date(Date.now() + 20_000) } : snapshot.data?.pixCampaign) as PixCampaign | null | undefined;
   const settings = (snapshot.data?.settings ?? []) as PixSetting[];
   const manualPixPayload = getManualPublicPixPayload(settings);
   const manualPixCampaign = manualPixPayload ? { id: -2, ticket: null, pixPayload: manualPixPayload, activeUntil: new Date(Date.now() + 60_000) } : null;
-  const activePixCampaign = preview === "pix" ? (previewParams?.get("pixPublic") !== "0" ? pixCampaign : null) : manualPixCampaign ?? publicPixCampaign(pixCampaign, settings);
+  const activePixCampaign = preview === "pix" ? (previewParams?.get("pixPublic") !== "0" ? pixCampaign : null) : preview ? null : manualPixCampaign ?? publicPixCampaign(pixCampaign, settings);
   const [qrSource, setQrSource] = useState("");
   const [welcomeVisible, setWelcomeVisible] = useState(false);
   const previewWelcome = previewParams?.get("welcome") === "1";
@@ -62,7 +62,7 @@ export default function PublicCalls() {
   return <main className="public-stage public-hotdog-screen min-h-screen overflow-hidden text-[#fff8e8]">
     <div className="hotdog-layout">
       <header className="hotdog-header">
-        <div className="hotdog-brand"><div className="brand-stamp"><ChefHat className="h-6 w-6" /></div><div><p className="brand-name">Barraca Agostina</p><p className="brand-subtitle">CACHORRO-QUENTE • IFRO VILHENA</p></div></div>
+        <div className="hotdog-brand"><div className="brand-stamp"><HotDogIcon className="h-6 w-6" /></div><div><p className="brand-name">Barraca Agostina</p><p className="brand-subtitle">CACHORRO-QUENTE • IFRO VILHENA</p></div></div>
         <div className="hotdog-status"><span /><strong>Barraca aberta</strong><small>quente direto da chapa</small></div>
         <button className="hotdog-back" onClick={() => setLocation("/")}>Operação <span>↗</span></button>
       </header>
@@ -84,6 +84,8 @@ export default function PublicCalls() {
 
 function HotDogIllustration() { return <div className="hotdog-illustration" aria-hidden="true"><span className="hotdog-bun top" /><span className="hotdog-sausage" /><span className="hotdog-mustard" /><span className="hotdog-ketchup" /><span className="hotdog-bun bottom" /><span className="hotdog-spark one" /><span className="hotdog-spark two" /><span className="hotdog-spark three" /></div>; }
 
+function HotDogIcon({ className }: { className?: string }) { return <svg viewBox="0 0 32 32" className={className} fill="none" aria-hidden="true"><path d="M4 12c0-4 3-7 7-7h10c4 0 7 3 7 7v8c0 4-3 7-7 7H11c-4 0-7-3-7-7v-8Z" fill="currentColor" opacity=".34" /><path d="M4 14c0-3 3-5 7-5h10c4 0 7 2 7 5v4c0 3-3 5-7 5H11c-4 0-7-2-7-5v-4Z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /><path d="M8 16h16" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" /><path d="M10 13.5c1.5-1.4 3-1.4 4.5 0s3 1.4 4.5 0 3-1.4 4.5 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>; }
+
 function WelcomeOverlay({ onDismiss, persistent }: { onDismiss: () => void; persistent: boolean }) { return <div className={`welcome-overlay${persistent ? " welcome-preview" : ""}`}><div className="welcome-card"><div className="welcome-steam"><i /><i /><i /></div><div className="welcome-icon"><Flame className="h-10 w-10" /></div><p className="welcome-kicker">CHEGOU A HORA DO LANCHE</p><h1>BEM-VINDOS<br />À NOSSA <em>BARRACA!</em></h1><p className="welcome-copy">Cachorro-quente quentinho, feito na hora e preparado com carinho.</p><button onClick={onDismiss}>Vamos começar <span>→</span></button></div></div>; }
 
 function GoalAnnouncement({ goalAlert }: { goalAlert: GoalAlert }) { return <div className="goal-show relative z-10"><div className="goal-copy"><span className="stage-label"><Target className="h-4 w-4" />Meta do lanche</span><h1 className="goal-title">META<br /><em>BATIDA!</em></h1><div className="goal-value">{money.format(Number(goalAlert.goalAmount))}</div><div className="goal-message"><span>AVISO</span><p>{goalAlert.message || "Pesa o cachorro-quente no local de retirada."}</p></div><p className="goal-siren"><Zap className="h-4 w-4" />A sirene vai tocar!</p></div><div className="goal-side"><div className="goal-bell"><BellRing className="h-16 w-16" /></div><span>COMEMORE<br />COM A GENTE</span></div><ConfettiBurst /></div>; }
@@ -92,6 +94,17 @@ function PromotionAnnouncement() { return <div className="promotion-announcement
 
 function PixAnnouncement({ campaign, qrSource }: { campaign: Omit<PixCampaign, "ticket"> & { ticket: number | null }; qrSource: string }) { return <div className="pix-show relative z-10"><div className="pix-copy"><span className="stage-label"><QrCode className="h-4 w-4" />Pagamento rápido</span><h1>PIX<br /><em>NA HORA.</em></h1><p className="pix-caption">{campaign.ticket ? <>Pedido <strong>#{String(campaign.ticket).padStart(2, "0")}</strong> confirmado.</> : <>PIX liberado pelo caixa.</>} Escaneie o QR Code e conclua o pagamento.</p><span className="pix-dynamic-note"><span />QR Code dinâmico e atualizado</span></div><div className="pix-qr-frame"><div className="pix-qr-head"><Sparkles className="h-4 w-4" />Aponte a câmera</div><div className="pix-qr-shell">{qrSource ? <img src={qrSource} alt="QR Code PIX dinâmico" /> : <QrCode className="h-16 w-16 text-[#311111]" />}<i className="pix-scan-line" /></div><small>Pagamento via PIX</small></div></div>; }
 
-function SponsorCarousel({ sponsors }: { sponsors: Sponsor[] }) { const items = sponsors.length > 1 ? [...sponsors, ...sponsors] : sponsors; return <div className="sponsor-viewport">{items.length ? <div className={sponsors.length > 1 ? "sponsor-track" : "flex h-full items-center justify-center"}>{items.map((sponsor, index) => <div key={`${sponsor.id}-${index}`} className="sponsor-card"><img src={sponsor.imageUrl} alt={`Patrocinador ${sponsor.name}`} className="object-contain" /></div>)}</div> : <p className="empty-sponsors">Este espaço é dos parceiros da Barraca Agostina.</p>}</div>; }
+function SponsorCarousel({ sponsors }: { sponsors: Sponsor[] }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  useEffect(() => {
+    setActiveIndex(0);
+    if (sponsors.length < 2) return;
+    const timer = window.setInterval(() => setActiveIndex(current => (current + 1) % sponsors.length), 6_000);
+    return () => window.clearInterval(timer);
+  }, [sponsors.length]);
+  const activeSponsor = sponsors[activeIndex];
+  if (!activeSponsor) return <div className="sponsor-viewport"><p className="empty-sponsors">Este espaço é dos parceiros da Barraca Agostina.</p></div>;
+  return <div className="sponsor-viewport"><article key={activeSponsor.id} className="sponsor-feature-card"><div className="sponsor-feature-label"><Sparkles className="h-3.5 w-3.5" />Parceiro em destaque</div><img src={activeSponsor.imageUrl} alt={`Patrocinador ${activeSponsor.name}`} className="object-contain" /><p>{activeSponsor.name}</p></article>{sponsors.length > 1 ? <div className="sponsor-dots" aria-label={`Patrocinador ${activeIndex + 1} de ${sponsors.length}`}>{sponsors.map((sponsor, index) => <span key={sponsor.id} className={index === activeIndex ? "active" : ""} />)}</div> : null}</div>;
+}
 
 function ConfettiBurst() { const colors = ["#f9c74f", "#ef476f", "#90be6d", "#fff8e8", "#f77f00"]; return <div className="confetti-burst" aria-hidden="true">{Array.from({ length: 46 }, (_, index) => { const style = { left: `${(index * 37) % 100}%`, top: `${6 + ((index * 29) % 28)}%`, backgroundColor: colors[index % colors.length], "--drift": `${((index * 47) % 220) - 110}px`, "--delay": `${(index % 11) * 45}ms`, "--turn": `${(index % 2 ? 1 : -1) * (120 + (index % 5) * 35)}deg` } as CSSProperties; return <span key={index} className={index % 3 === 0 ? "confetti-piece confetti-ribbon" : "confetti-piece"} style={style} />; })}</div>; }

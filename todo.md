@@ -116,3 +116,14 @@
 - [x] Alinhar a composição promocional no novo layout temático
 - [x] Manter a prévia de boas-vindas visível para validação sem alterar a duração real de abertura
 - [x] Medir o cartão de boas-vindas para confirmar que a animação cabe na tela pública
+- [x] Criar carrossel rotativo de patrocinadores com destaque individual temporizado
+- [x] Substituir o ícone de chef por cachorro-quente na tela pública
+- [x] Redesenhar a interface principal em Cadastro, Pedido, Dashboard e Configurações
+- [x] Permitir configurar um valor PIX no código copia-e-cola para gerar QR de valor fixo
+- [x] Limitar a campanha PIX automática a 20 segundos
+- [x] Cobrir as novas regras PIX e a duração da campanha com testes
+- [x] Validar carrossel, páginas principais e tela pública em 1280x720
+- [x] Tornar a prévia de promoção independente de um PIX manual ativo durante a validação
+- [x] Adicionar campo de valor PIX fixo opcional para o QR automático por pedido
+- [x] Validar em 1280x720 o cabeçalho e a ausência de overflow horizontal nas páginas principais
+- [x] Comprovar a troca temporizada do patrocinador em destaque no carrossel público
