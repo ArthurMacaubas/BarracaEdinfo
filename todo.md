@@ -74,3 +74,7 @@
 - [x] Validar o fluxo PIX salvo até a criação da campanha pública no segundo monitor
 - [x] Testar a persistência do PIX seguida da criação de campanha pública no mesmo fluxo
 - [x] Validar no painel público que a campanha PIX usa o código recém-salvo
+- [x] Adicionar botão para mostrar o código PIX copia e cola na tela de pedido
+- [x] Validar a leitura do código PIX configurado no caixa
+- [x] Testar a leitura de pix_payload pelo acesso rápido do caixa
+- [x] Validar visualmente o diálogo PIX aberto na tela de pedido

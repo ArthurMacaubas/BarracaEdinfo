@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import SponsorControls from "@/components/SponsorControls";
+import PixQuickAccess from "@/components/PixQuickAccess";
 import { readActiveCart, readActivePayment } from "@/lib/orderDraft";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,10 @@ function Loading() { return <div className="grid min-h-[60vh] place-items-center
 function RecoveryNotice({ title, message, retry }: { title: string; message: string; retry: () => void }) { return <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950"><div className="flex items-start gap-3"><CircleAlert className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-bold">{title}</p><p className="mt-1 text-sm leading-5 text-amber-900">{message}</p></div></div><Button onClick={retry} variant="outline" className="rounded-xl border-amber-300 bg-white">Tentar recuperar</Button></div>; }
 
 function Cashier({ products, refresh }: { products: Product[]; refresh: () => void }) {
+  return <><CashierPanel products={products} refresh={refresh} /><PixQuickAccess /></>;
+}
+
+function CashierPanel({ products, refresh }: { products: Product[]; refresh: () => void }) {
   const [cart, setCart] = useState<Record<number, number>>(() => readActiveCart());
   const [payment, setPayment] = useState<"PIX" | "CASH" | "CARD">(() => readActivePayment());
   const [note, setNote] = useState(() => localStorage.getItem("barraca-active-order-note") ?? "");
