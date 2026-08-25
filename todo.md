@@ -102,3 +102,9 @@
 - [x] Validar que o aumento dos patrocinadores preserva a tela fixa em 1280x720
 - [x] Corrigir o corte da mensagem promocional causado pelo aumento do rodapé de patrocinadores
 - [x] Medir os limites do anúncio promocional e comprovar que sua mensagem cabe no viewport
+- [x] Redesenhar integralmente a identidade visual da tela pública para segundo monitor
+- [x] Reestruturar os estados de Meta, PIX e promoção na nova direção visual
+- [x] Preservar patrocinadores grandes e carrossel contínuo no novo design
+- [x] Validar o novo design sem rolagem ou conteúdo cortado em 1280x720
+- [x] Medir limites dos elementos-chave de Meta e PIX no novo design público
+- [x] Registrar no relatório as medições de conteúdo dos três estados públicos
