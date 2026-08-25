@@ -34,4 +34,17 @@ describe("configuração do PIX", () => {
     expect(settingValues).toHaveBeenCalledWith({ key: "public_pix_enabled", value: "false" });
     expect(upsert).toHaveBeenCalledWith({ set: { value: "false" } });
   });
+
+  it("persiste o comando manual do caixa para mostrar o QR PIX no segundo monitor", async () => {
+    const upsert = vi.fn().mockResolvedValue(undefined);
+    const settingValues = vi.fn(() => ({ onDuplicateKeyUpdate: upsert }));
+    const eventValues = vi.fn().mockResolvedValue(undefined);
+    const insert = vi.fn().mockReturnValueOnce({ values: settingValues }).mockReturnValueOnce({ values: eventValues });
+    vi.mocked(getDb).mockResolvedValue({ insert } as never);
+
+    await saveSetting("public_pix_manual_display", "true");
+
+    expect(settingValues).toHaveBeenCalledWith({ key: "public_pix_manual_display", value: "true" });
+    expect(upsert).toHaveBeenCalledWith({ set: { value: "true" } });
+  });
 });

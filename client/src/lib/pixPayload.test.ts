@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPixPayload, isPublicPixEnabled, publicPixCampaign } from "./pixPayload";
+import { getManualPublicPixPayload, getPixPayload, isPublicPixEnabled, publicPixCampaign } from "./pixPayload";
 
 describe("código PIX no caixa", () => {
   it("lê e normaliza o valor configurado em pix_payload", () => {
@@ -20,5 +20,11 @@ describe("código PIX no caixa", () => {
     const campaign = { id: 18, pixPayload: "PIX-PERSISTIDO" };
     expect(publicPixCampaign(campaign, [{ key: "public_pix_enabled", value: "true" }])).toEqual(campaign);
     expect(publicPixCampaign(campaign, [{ key: "public_pix_enabled", value: "false" }])).toBeNull();
+  });
+
+  it("retorna o PIX para o segundo monitor apenas quando o comando do caixa está ativo", () => {
+    const settings = [{ key: "pix_payload", value: "PIX-DO-CAIXA" }, { key: "public_pix_manual_display", value: "true" }];
+    expect(getManualPublicPixPayload(settings)).toBe("PIX-DO-CAIXA");
+    expect(getManualPublicPixPayload([{ key: "pix_payload", value: "PIX-DO-CAIXA" }, { key: "public_pix_manual_display", value: "false" }])).toBe("");
   });
 });

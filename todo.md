@@ -86,3 +86,7 @@
 - [x] Adicionar botão para confirmar manualmente pagamentos PIX no caixa
 - [x] Persistir a confirmação PIX e registrar o evento de auditoria do pedido
 - [x] Testar o registro manual de confirmação PIX
+- [x] Fazer o botão QR do caixa ativar a campanha PIX na tela pública
+- [x] Validar a exibição do QR no segundo monitor a partir do comando do caixa
+- [x] Testar a persistência de public_pix_manual_display acionada pelo caixa
+- [x] Validar a decisão de exibição do QR manual no segundo monitor pela cobertura automatizada
