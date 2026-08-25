@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./db", () => ({ getDb: vi.fn() }));
 import { getDb } from "./db";
-import { reorderSponsors, saveSponsor } from "./operations";
+import { deleteSponsor, reorderSponsors, saveSponsor } from "./operations";
 
 describe("saveSponsor", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -28,5 +28,21 @@ describe("saveSponsor", () => {
     await expect(reorderSponsors([3, 1, 2])).resolves.toEqual([3, 1, 2]);
 
     expect(updates).toEqual([{ sortOrder: 0 }, { sortOrder: 1 }, { sortOrder: 2 }]);
+  });
+
+  it("exclui um patrocinador existente e registra a auditoria", async () => {
+    const where = vi.fn(() => ({ limit: vi.fn().mockResolvedValue([{ id: 7, name: "Marca removida" }]) }));
+    const select = vi.fn(() => ({ from: vi.fn(() => ({ where })) }));
+    const removeWhere = vi.fn().mockResolvedValue(undefined);
+    const remove = vi.fn(() => ({ where: removeWhere }));
+    const insertValues = vi.fn().mockResolvedValue(undefined);
+    const insert = vi.fn(() => ({ values: insertValues }));
+    vi.mocked(getDb).mockResolvedValue({ select, delete: remove, insert } as never);
+
+    await expect(deleteSponsor(7)).resolves.toBe(7);
+
+    expect(remove).toHaveBeenCalled();
+    expect(removeWhere).toHaveBeenCalled();
+    expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ type: "SPONSOR_DELETED", entityType: "SPONSOR", entityId: 7, payload: JSON.stringify({ name: "Marca removida" }) }));
   });
 });
