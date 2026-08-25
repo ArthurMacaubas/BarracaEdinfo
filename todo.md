@@ -78,3 +78,8 @@
 - [x] Validar a leitura do código PIX configurado no caixa
 - [x] Testar a leitura de pix_payload pelo acesso rápido do caixa
 - [x] Validar visualmente o diálogo PIX aberto na tela de pedido
+- [x] Exibir QR Code do PIX configurado na tela de pedido
+- [x] Adicionar chave manual para ativar ou desativar a campanha PIX na tela pública
+- [x] Validar os estados ativo e inativo da campanha PIX pública
+- [x] Testar a persistência de public_pix_enabled até a decisão de exibição no painel público
+- [x] Validar o painel público sem prévia após alternar a exibição PIX nas configurações

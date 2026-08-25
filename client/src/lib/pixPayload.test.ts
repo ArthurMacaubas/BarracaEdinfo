@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPixPayload } from "./pixPayload";
+import { getPixPayload, isPublicPixEnabled, publicPixCampaign } from "./pixPayload";
 
 describe("código PIX no caixa", () => {
   it("lê e normaliza o valor configurado em pix_payload", () => {
@@ -8,5 +8,17 @@ describe("código PIX no caixa", () => {
 
   it("retorna vazio quando o PIX ainda não foi configurado", () => {
     expect(getPixPayload([{ key: "goal_public_message", value: "Mensagem" }])).toBe("");
+  });
+
+  it("mantém a campanha PIX pública ativa por padrão e respeita a desativação manual", () => {
+    expect(isPublicPixEnabled([])).toBe(true);
+    expect(isPublicPixEnabled([{ key: "public_pix_enabled", value: "false" }])).toBe(false);
+    expect(isPublicPixEnabled([{ key: "public_pix_enabled", value: "true" }])).toBe(true);
+  });
+
+  it("suprime a campanha no painel público quando public_pix_enabled está desativado", () => {
+    const campaign = { id: 18, pixPayload: "PIX-PERSISTIDO" };
+    expect(publicPixCampaign(campaign, [{ key: "public_pix_enabled", value: "true" }])).toEqual(campaign);
+    expect(publicPixCampaign(campaign, [{ key: "public_pix_enabled", value: "false" }])).toBeNull();
   });
 });

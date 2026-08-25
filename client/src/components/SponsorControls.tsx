@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import PublicPixToggle from "@/components/PublicPixToggle";
 import { trpc } from "@/lib/trpc";
 import { Pencil, Power, Save } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -12,7 +13,7 @@ type Sponsor = { id: number; name: string; imageUrl: string; enabled: boolean; s
 type Setting = { key: string; value: string };
 
 export default function SponsorControls({ sponsors, refresh }: { sponsors: Sponsor[]; refresh: () => void }) {
-  return <><PixPayloadControl refresh={refresh} />{sponsors.length ? <SponsorManager sponsors={sponsors} refresh={refresh} /> : null}</>;
+  return <><PixPayloadControl refresh={refresh} /><PublicPixToggle refresh={refresh} />{sponsors.length ? <SponsorManager sponsors={sponsors} refresh={refresh} /> : null}</>;
 }
 
 function PixPayloadControl({ refresh }: { refresh: () => void }) {
