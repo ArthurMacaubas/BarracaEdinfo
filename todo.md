@@ -41,3 +41,4 @@
 ## Histórico
 
 - Requisitos consolidados a partir do prompt principal e da solicitação de implementação.
+- [x] Verificar e aplicar a edição visual manual indicada para o título da interface — o título foi localizado e a anotação “perfeito” não solicitou mudança adicional
