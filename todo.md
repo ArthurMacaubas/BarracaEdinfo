@@ -83,3 +83,6 @@
 - [x] Validar os estados ativo e inativo da campanha PIX pública
 - [x] Testar a persistência de public_pix_enabled até a decisão de exibição no painel público
 - [x] Validar o painel público sem prévia após alternar a exibição PIX nas configurações
+- [x] Adicionar botão para confirmar manualmente pagamentos PIX no caixa
+- [x] Persistir a confirmação PIX e registrar o evento de auditoria do pedido
+- [x] Testar o registro manual de confirmação PIX

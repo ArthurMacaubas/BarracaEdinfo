@@ -30,6 +30,7 @@ export const orders = mysqlTable("orders", {
   requestKey: varchar("requestKey", { length: 100 }).notNull().unique(),
   status: mysqlEnum("status", ["NEW", "PREPARING", "READY", "DELIVERED", "CANCELLED"]).default("NEW").notNull(),
   paymentMethod: mysqlEnum("paymentMethod", ["PIX", "CASH", "CARD"]).notNull(),
+  pixConfirmedAt: timestamp("pixConfirmedAt"),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   note: text("note"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

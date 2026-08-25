@@ -16,6 +16,7 @@ export type CartItemInput = { productId: number; quantity: number };
 export function calculateOrderTotal(lines: Array<{ unitPrice: number; quantity: number }>) { return lines.reduce((sum, line) => { if (!Number.isFinite(line.unitPrice) || !Number.isInteger(line.quantity) || line.quantity < 1) throw new Error("Item de pedido inválido."); return sum + line.unitPrice * line.quantity; }, 0); }
 export function isDuplicateRequestKey(existingOrders: Array<{ requestKey: string }>, requestKey: string) { return existingOrders.some(order => order.requestKey === requestKey); }
 export function isPaymentMethod(value: string): value is PaymentMethod { return PAYMENT_METHODS.includes(value as PaymentMethod); }
+export function canConfirmPixPayment(order: { paymentMethod: string; status: string; pixConfirmedAt: Date | null }) { return order.paymentMethod === "PIX" && order.status !== "CANCELLED" && !order.pixConfirmedAt; }
 export function shouldTriggerGoal(sales: number, goal: number, alreadyAlerted: boolean) { return Number.isFinite(goal) && goal > 0 && sales >= goal && !alreadyAlerted; }
 export function goalProgress(totalSales: number, baselineSales: number) { return Math.max(0, totalSales - Math.max(0, baselineSales)); }
 export function getSetting(settings: Array<{ key: string; value: string }>, key: string, fallback = "") { return settings.find(setting => setting.key === key)?.value ?? fallback; }
@@ -81,6 +82,28 @@ export async function createOrder(input: { requestKey: string; paymentMethod: Pa
   await evaluateGoalAfterSale();
   const createdOrder = await db.select().from(orders).where(eq(orders.id, result.id)).limit(1);
   return { order: createdOrder[0]!, duplicated: false };
+}
+
+export async function listPendingPixPayments() {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível.");
+  const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
+  return rows.filter(order => canConfirmPixPayment(order)).slice(0, 30);
+}
+
+export async function confirmPixPayment(orderId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível.");
+  const found = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  const order = found[0];
+  if (!order) throw new Error("Pedido não encontrado.");
+  if (order.paymentMethod !== "PIX") throw new Error("Este pedido não utiliza PIX.");
+  if (order.status === "CANCELLED") throw new Error("Não é possível confirmar um pedido cancelado.");
+  if (order.pixConfirmedAt) return { order, alreadyConfirmed: true };
+  const pixConfirmedAt = new Date();
+  await db.update(orders).set({ pixConfirmedAt }).where(eq(orders.id, orderId));
+  await recordEvent("PIX_PAYMENT_CONFIRMED_MANUALLY", "ORDER", orderId, { ticket: order.ticket, total: Number(order.total), pixConfirmedAt: pixConfirmedAt.toISOString() });
+  return { order: { ...order, pixConfirmedAt }, alreadyConfirmed: false };
 }
 
 export async function getOperationalSnapshot() {
