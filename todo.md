@@ -66,3 +66,5 @@
 - [x] Transformar patrocinadores em carrossel ampliado e contínuo na tela pública
 - [x] Refinar a identidade visual e a hierarquia da tela pública para segundo monitor
 - [x] Validar visualmente a celebração, o carrossel e os estados de exibição pública
+- [x] Substituir a espera por chamada promocional sobre sirene e retirada gratuita
+- [x] Remover referências públicas a senha, chamada e histórico de senhas
