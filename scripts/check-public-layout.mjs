@@ -6,7 +6,8 @@ const baseUrl = process.env.PUBLIC_LAYOUT_URL ?? "http://localhost:3000";
 const states = [
   { name: "meta", route: "/chamadas?preview=goal&sponsors=1" },
   { name: "pix", route: "/chamadas?preview=pix&sponsors=1" },
-  { name: "promocao", route: "/chamadas?sponsors=1" },
+  { name: "promocao", route: "/chamadas?preview=promotion&sponsors=1" },
+  { name: "boas-vindas", route: "/chamadas?preview=promotion&sponsors=1&welcome=1" },
 ];
 const evidenceDirectory = process.env.PUBLIC_LAYOUT_EVIDENCE_DIR ?? "/home/ubuntu/webdev-static-assets/barraca-agostina-ifro-layout";
 
@@ -37,6 +38,7 @@ try {
       const promotion = document.querySelector(".promotion-announcement");
       const reward = document.querySelector(".promotion-reward");
       const rewardCopy = reward?.querySelector("p");
+      const welcomeCard = document.querySelector(".welcome-card");
       const toBounds = (element) => element ? (() => {
         const { top, right, bottom, left, width, height } = element.getBoundingClientRect();
         return { top, right, bottom, left, width, height };
@@ -58,6 +60,7 @@ try {
         promotionBounds: toBounds(promotion),
         rewardBounds: toBounds(reward),
         rewardCopyBounds: toBounds(rewardCopy),
+        welcomeCardBounds: toBounds(welcomeCard),
       };
     });
     const exceedsViewport = layout.documentHeight > layout.innerHeight + 1 || layout.bodyHeight > layout.innerHeight + 1 || layout.stageHeight > layout.innerHeight + 1;
@@ -76,7 +79,8 @@ try {
       layout.rewardCopyBounds?.top >= layout.rewardBounds.top &&
       layout.rewardCopyBounds?.bottom <= layout.rewardBounds.bottom
     );
-    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !promotionIsVisible) {
+    const welcomeIsVisible = !layout.welcomeCardBounds || isInsideCanvas(layout.welcomeCardBounds);
+    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !promotionIsVisible || !welcomeIsVisible) {
       throw new Error(`Layout público excede o monitor em ${route}: ${JSON.stringify(layout)}`);
     }
     results.push({ state: name, route, screenshotPath, ...layout });

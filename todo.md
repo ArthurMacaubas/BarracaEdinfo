@@ -108,3 +108,11 @@
 - [x] Validar o novo design sem rolagem ou conteúdo cortado em 1280x720
 - [x] Medir limites dos elementos-chave de Meta e PIX no novo design público
 - [x] Registrar no relatório as medições de conteúdo dos três estados públicos
+- [x] Substituir a identidade visual pública por uma barraca de cachorro-quente
+- [x] Criar tela de boas-vindas animada para a abertura da barraca
+- [x] Destacar patrocinadores como faixa principal no novo layout
+- [x] Exibir QR Code PIX dinâmico na área de pagamento público
+- [x] Validar abertura, Meta, PIX e promoção sem corte em 1280x720
+- [x] Alinhar a composição promocional no novo layout temático
+- [x] Manter a prévia de boas-vindas visível para validação sem alterar a duração real de abertura
+- [x] Medir o cartão de boas-vindas para confirmar que a animação cabe na tela pública
