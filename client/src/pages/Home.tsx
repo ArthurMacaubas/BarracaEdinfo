@@ -1,33 +1,160 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { trpc } from "@/lib/trpc";
+import { readActiveCart, readActivePayment } from "@/lib/orderDraft";
+import { Banknote, BellRing, Boxes, Check, ChefHat, CircleAlert, CreditCard, Gauge, LayoutDashboard, MonitorUp, PackagePlus, PanelTopOpen, Plus, Radio, ReceiptText, Settings2, ShoppingBasket, Smartphone, TrendingUp, Wifi, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useLocation } from "wouter";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+type Status = "NEW" | "PREPARING" | "READY" | "DELIVERED" | "CANCELLED";
+type Product = { id: number; name: string; description: string | null; category: string; price: string; available: boolean; sortOrder: number };
+type Order = { id: number; ticket: number; status: Status; paymentMethod: "PIX" | "CASH" | "CARD"; total: string; note: string | null; createdAt: Date };
+type Item = { id: number; orderId: number; productId: number; productName: string; quantity: number; unitPrice: string; subtotal: string };
+type Metrics = { totalOrders: number; sales: number; ticketAverage: number; queues: Record<Status, number> };
+type Connection = { database: string; hardware: { state: string; queued: number; logs: { at: Date; message: string; level: string }[] } };
+type EventLog = { id: number; type: string; entityType: string | null; entityId: number | null; payload: string | null; createdAt: Date };
+
+const tabs = [
+  { id: "caixa", label: "Caixa", icon: ShoppingBasket },
+  { id: "producao", label: "Produção", icon: ChefHat },
+  { id: "painel", label: "Painel", icon: LayoutDashboard },
+  { id: "config", label: "Configurações", icon: Settings2 },
+] as const;
+type Tab = (typeof tabs)[number]["id"];
+
+const meta: Record<Status, { label: string; tone: string }> = {
+  NEW: { label: "Na fila", tone: "bg-amber-100 text-amber-800" },
+  PREPARING: { label: "Em preparo", tone: "bg-orange-100 text-orange-800" },
+  READY: { label: "Pronto", tone: "bg-emerald-100 text-emerald-800" },
+  DELIVERED: { label: "Entregue", tone: "bg-stone-100 text-stone-700" },
+  CANCELLED: { label: "Cancelado", tone: "bg-rose-100 text-rose-800" },
+};
+const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const formatTime = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+function useOnline() {
+  const [online, setOnline] = useState(() => navigator.onLine);
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => { window.removeEventListener("online", update); window.removeEventListener("offline", update); };
+  }, []);
+  return online;
+}
+
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const [location, setLocation] = useLocation();
+  const [tab, setTab] = useState<Tab>(() => location === "/producao" ? "producao" : location === "/painel" ? "painel" : location === "/configuracoes" ? "config" : "caixa");
+  const snapshot = trpc.operations.snapshot.useQuery(undefined, { refetchInterval: 3000 });
+  const productQuery = trpc.operations.products.useQuery(undefined, { refetchInterval: 6000 });
+  const connectivity = trpc.connectivity.status.useQuery(undefined, { refetchInterval: 4000 });
+  const online = useOnline();
+  const utils = trpc.useUtils();
+  const refresh = () => { void utils.operations.snapshot.invalidate(); void utils.operations.products.invalidate(); void utils.connectivity.status.invalidate(); };
+  const orders = (snapshot.data?.orders ?? []) as Order[];
+  const items = (snapshot.data?.items ?? []) as Item[];
+  const products = (productQuery.data ?? []) as Product[];
+  const connection = connectivity.data as Connection | undefined;
+  const metrics = snapshot.data?.metrics as Metrics | undefined;
 
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  return <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_oklch(0.94_0.07_75),_transparent_29%),linear-gradient(130deg,_oklch(0.98_0.014_80),_oklch(0.955_0.02_70))]">
+    <header className="sticky top-0 z-30 border-b border-stone-300/70 bg-background/85 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[1760px] items-center gap-4 px-5 py-3 lg:px-8">
+        <div className="flex min-w-0 items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-[linear-gradient(145deg,_#9c321e,_#d56831)] text-white shadow-lg shadow-orange-950/20"><ChefHat className="h-6 w-6" /></div><div><p className="font-display text-lg font-bold leading-tight text-stone-900">Barraca Agostina</p><p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">IFRO • Vilhena</p></div></div>
+        <nav className="ml-auto hidden rounded-2xl border border-stone-200 bg-white/70 p-1 lg:flex">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={cn("flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition", tab === item.id ? "bg-stone-900 text-white shadow-sm" : "text-stone-600 hover:bg-stone-100")}><item.icon className="h-4 w-4" />{item.label}</button>)}</nav>
+        <div className="hidden items-center gap-2 xl:flex"><ConnectionBadge label="Rede" online={online} /><ConnectionBadge label="Banco" online={connection?.database === "ONLINE"} /><ConnectionBadge label="Arduino" online={connection?.hardware.state === "ONLINE"} /></div>
+        <Button onClick={() => setLocation("/chamadas")} className="hidden gap-2 rounded-xl bg-[#9c321e] px-4 font-bold hover:bg-[#7f2819] md:flex"><MonitorUp className="h-4 w-4" />Tela pública</Button>
+      </div>
+      <div className="flex gap-1 overflow-x-auto px-4 pb-2 lg:hidden">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={cn("flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold", tab === item.id ? "bg-stone-900 text-white" : "bg-white text-stone-600")}><item.icon className="h-4 w-4" />{item.label}</button>)}</div>
+    </header>
+    <main className="mx-auto max-w-[1760px] px-5 py-6 lg:px-8 lg:py-8">
+      {snapshot.isLoading ? <Loading /> : <>
+        {!online ? <RecoveryNotice title="Rede local indisponível" message="A comanda em montagem permanece neste navegador. Ao reconectar, confirme o mesmo pedido sem criar uma nova senha." retry={refresh} /> : null}
+        {snapshot.error ? <RecoveryNotice title="Banco de dados em recuperação" message="O caixa preserva a comanda atual. Aguarde o restabelecimento do banco e use a mesma confirmação para evitar duplicidade." retry={refresh} /> : null}
+        {tab === "caixa" ? <Cashier products={products} refresh={refresh} /> : null}
+        {tab === "producao" ? <Production orders={orders} items={items} refresh={refresh} /> : null}
+        {tab === "painel" ? <Dashboard orders={orders} metrics={metrics} connection={connection} goTo={setTab} /> : null}
+        {tab === "config" ? <><Settings products={products} settings={snapshot.data?.settings ?? []} connection={connection} refresh={refresh} /><Diagnostics events={(snapshot.data?.events ?? []) as EventLog[]} hardware={connection?.hardware.logs ?? []} /></> : null}
+      </>}
+    </main>
+  </div>;
+}
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+function ConnectionBadge({ label, online }: { label: string; online: boolean }) { return <div className={cn("flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold", online ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-rose-200 bg-rose-50 text-rose-700")}><span className={cn("h-2 w-2 rounded-full", online ? "bg-emerald-500" : "bg-rose-500")} />{label}</div>; }
+function Loading() { return <div className="grid min-h-[60vh] place-items-center"><div className="text-center"><div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-orange-200 border-t-[#9c321e]" /><p className="font-bold text-stone-600">Preparando a operação…</p></div></div>; }
+function RecoveryNotice({ title, message, retry }: { title: string; message: string; retry: () => void }) { return <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950"><div className="flex items-start gap-3"><CircleAlert className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-bold">{title}</p><p className="mt-1 text-sm leading-5 text-amber-900">{message}</p></div></div><Button onClick={retry} variant="outline" className="rounded-xl border-amber-300 bg-white">Tentar recuperar</Button></div>; }
+
+function Cashier({ products, refresh }: { products: Product[]; refresh: () => void }) {
+  const [cart, setCart] = useState<Record<number, number>>(() => readActiveCart());
+  const [payment, setPayment] = useState<"PIX" | "CASH" | "CARD">(() => readActivePayment());
+  const [note, setNote] = useState(() => localStorage.getItem("barraca-active-order-note") ?? "");
+  const [requestKey, setRequestKey] = useState(() => localStorage.getItem("barraca-active-order-key") ?? crypto.randomUUID());
+  const available = products.filter(product => product.available);
+  const categories = useMemo(() => Array.from(new Set(available.map(product => product.category))), [available]);
+  const lines = available.filter(product => cart[product.id]).map(product => ({ product, quantity: cart[product.id] }));
+  const total = lines.reduce((sum, line) => sum + Number(line.product.price) * line.quantity, 0);
+  useEffect(() => { localStorage.setItem("barraca-active-order-cart", JSON.stringify(cart)); }, [cart]);
+  useEffect(() => { localStorage.setItem("barraca-active-order-payment", payment); }, [payment]);
+  useEffect(() => { localStorage.setItem("barraca-active-order-note", note); }, [note]);
+  useEffect(() => { localStorage.setItem("barraca-active-order-key", requestKey); }, [requestKey]);
+  const create = trpc.operations.createOrder.useMutation({ onSuccess: data => { toast.success(data.duplicated ? `Pedido #${data.order.ticket} já estava registrado.` : `Pedido #${data.order.ticket} confirmado!`); setCart({}); setNote(""); setRequestKey(crypto.randomUUID()); refresh(); }, onError: error => toast.error(error.message) });
+  const change = (id: number, by: number) => setCart(current => { const next = (current[id] ?? 0) + by; if (next <= 0) { const { [id]: _discarded, ...rest } = current; return rest; } return { ...current, [id]: next }; });
+  const submit = () => create.mutate({ requestKey, paymentMethod: payment, note: note || undefined, items: lines.map(line => ({ productId: line.product.id, quantity: line.quantity })) });
+  return <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
+    <section className="min-w-0 rounded-[2rem] border border-stone-200/80 bg-white/80 p-5 shadow-[0_20px_60px_-30px_rgba(72,35,16,.25)] lg:p-7"><div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-bold uppercase tracking-[0.16em] text-orange-800">Operação de caixa</p><h1 className="font-display text-3xl font-bold tracking-tight text-stone-900">Monte o pedido sem interromper a fila.</h1></div><div className="rounded-2xl bg-stone-100 px-4 py-2 text-sm font-bold text-stone-600">{available.length} disponíveis</div></div>
+      {!available.length ? <div className="paper-grid grid min-h-[420px] place-items-center rounded-3xl border border-dashed border-orange-300 bg-orange-50/50 p-8 text-center"><div><PackagePlus className="mx-auto mb-4 h-10 w-10 text-[#9c321e]" /><h2 className="font-display text-2xl font-bold">Catálogo pronto para configurar</h2><p className="mx-auto mt-2 max-w-md text-stone-600">Cadastre os produtos em Configurações. Preços e opções acompanham a operação real da barraca.</p></div></div> : categories.map(category => <div key={category} className="mb-7"><h2 className="mb-3 text-sm font-extrabold uppercase tracking-[0.14em] text-stone-500">{category}</h2><div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">{available.filter(product => product.category === category).map(product => <button key={product.id} onClick={() => change(product.id, 1)} className="group min-h-[116px] rounded-2xl border border-stone-200 bg-[#fffdf8] p-4 text-left transition hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-lg hover:shadow-orange-950/10 active:scale-[.98]"><div className="flex items-start justify-between gap-3"><div><p className="font-bold text-stone-900">{product.name}</p>{product.description ? <p className="mt-1 text-xs leading-5 text-stone-500">{product.description}</p> : null}</div><Plus className="h-5 w-5 shrink-0 text-orange-700 opacity-0 transition group-hover:opacity-100" /></div><p className="mt-3 font-display text-lg font-bold text-[#9c321e]">{money.format(Number(product.price))}</p></button>)}</div></div>)}</section>
+    <aside className="flex min-h-[630px] flex-col rounded-[2rem] bg-stone-900 p-5 text-stone-100 shadow-2xl shadow-stone-900/20 lg:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[.16em] text-orange-300">Pedido em montagem</p><h2 className="font-display text-2xl font-bold">Comanda atual</h2></div><ReceiptText className="h-6 w-6 text-orange-300" /></div><div className="my-5 flex-1 space-y-3 overflow-y-auto pr-1">{!lines.length ? <div className="grid min-h-60 place-items-center rounded-2xl border border-dashed border-white/20 px-8 text-center"><ShoppingBasket className="mb-3 h-8 w-8 text-orange-300" /><p className="text-sm leading-6 text-stone-300">Selecione os produtos ao lado para iniciar um pedido.</p></div> : lines.map(({ product, quantity }) => <div key={product.id} className="rounded-2xl bg-white/10 p-3"><div className="flex justify-between gap-3"><div><p className="font-bold">{product.name}</p><p className="text-xs text-stone-400">{money.format(Number(product.price))} por unidade</p></div><p className="font-bold text-orange-200">{money.format(Number(product.price) * quantity)}</p></div><div className="mt-3 flex items-center justify-between"><button className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-lg font-bold hover:bg-white/20" onClick={() => change(product.id, -1)}>−</button><span className="text-sm font-black">{quantity}</span><button className="grid h-8 w-8 place-items-center rounded-lg bg-orange-500 font-bold text-stone-950 hover:bg-orange-400" onClick={() => change(product.id, 1)}>+</button></div></div>)}</div><div className="border-t border-white/15 pt-4"><p className="mb-3 text-xs font-extrabold uppercase tracking-[.14em] text-stone-400">Forma de pagamento</p><div className="grid grid-cols-3 gap-2">{([{ id: "PIX", label: "PIX", icon: Smartphone }, { id: "CASH", label: "Dinheiro", icon: Banknote }, { id: "CARD", label: "Cartão", icon: CreditCard }] as const).map(option => <button key={option.id} onClick={() => setPayment(option.id)} className={cn("flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border text-xs font-bold transition", payment === option.id ? "border-orange-400 bg-orange-400 text-stone-950" : "border-white/10 bg-white/5 text-stone-200 hover:bg-white/10")}><option.icon className="h-4 w-4" />{option.label}</button>)}</div><Input value={note} onChange={event => setNote(event.target.value)} placeholder="Observação do pedido (opcional)" className="mt-3 h-11 border-white/15 bg-white/10 text-white placeholder:text-stone-400" /><div className="mt-5 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-stone-400">Total</p><p className="font-display text-4xl font-bold text-white">{money.format(total)}</p></div><Button disabled={!lines.length || create.isPending} onClick={submit} className="h-14 rounded-xl bg-orange-400 px-5 text-base font-black text-stone-950 hover:bg-orange-300">{create.isPending ? "Salvando…" : "Confirmar"}<Check className="ml-2 h-5 w-5" /></Button></div></div></aside>
+  </div>;
+}
+
+function Production({ orders, items, refresh }: { orders: Order[]; items: Item[]; refresh: () => void }) {
+  const mutate = trpc.operations.changeStatus.useMutation({ onSuccess: order => { toast.success(`Pedido #${order.ticket} atualizado.`); refresh(); }, onError: error => toast.error(error.message) });
+  const lanes: { status: Status; action: { label: string; target: Status } }[] = [
+    { status: "NEW", action: { label: "Iniciar preparo", target: "PREPARING" } },
+    { status: "PREPARING", action: { label: "Marcar pronto", target: "READY" } },
+    { status: "READY", action: { label: "Entregar", target: "DELIVERED" } },
+  ];
+  const closed = ["DELIVERED", "CANCELLED"] as Status[];
+  return <section>
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-bold uppercase tracking-[.16em] text-orange-800">Linha de produção</p><h1 className="font-display text-3xl font-bold">A fila que a equipe precisa enxergar.</h1></div><p className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-stone-600 shadow-sm">Atualização automática</p></div>
+    <div className="grid gap-5 xl:grid-cols-3">{lanes.map(lane => { const list = orders.filter(order => order.status === lane.status); return <div key={lane.status} className="rounded-[2rem] border border-stone-200 bg-white/75 p-4 shadow-[0_16px_40px_-30px_rgba(72,35,16,.35)]"><div className="mb-4 flex items-center justify-between px-2"><h2 className="font-display text-xl font-bold">{meta[lane.status].label}</h2><span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">{list.length}</span></div><div className="min-h-[520px] space-y-3">{list.length ? list.map(order => <OrderCard key={order.id} order={order} items={items.filter(item => item.orderId === order.id)} action={lane.action.label} onAction={() => mutate.mutate({ id: order.id, status: lane.action.target })} onCancel={() => mutate.mutate({ id: order.id, status: "CANCELLED" })} disabled={mutate.isPending} />) : <div className="grid min-h-48 place-items-center rounded-2xl border border-dashed border-stone-200 p-6 text-center text-sm text-stone-500">Nenhum pedido nesta fila.</div>}</div></div>; })}</div>
+    <div className="mt-6 grid gap-5 xl:grid-cols-2">{closed.map(status => { const list = orders.filter(order => order.status === status); return <div key={status} className={cn("rounded-[2rem] border p-5", status === "DELIVERED" ? "border-stone-200 bg-white/80" : "border-rose-200 bg-rose-50/70")}><div className="flex items-center justify-between"><h2 className="font-display text-xl font-bold">{meta[status].label}</h2><span className={cn("rounded-full px-3 py-1 text-xs font-black", meta[status].tone)}>{list.length}</span></div><div className="mt-4 flex flex-wrap gap-2">{list.length ? list.slice(0, 12).map(order => <span key={order.id} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-bold text-stone-700">#{String(order.ticket).padStart(2, "0")} <span className="ml-1 text-xs font-medium text-stone-500">{formatTime.format(new Date(order.createdAt))}</span></span>) : <p className="text-sm text-stone-500">Sem pedidos nesta fila.</p>}</div></div>; })}</div>
+  </section>;
+}
+
+function OrderCard({ order, items, action, onAction, onCancel, disabled }: { order: Order; items: Item[]; action: string; onAction: () => void; onCancel: () => void; disabled: boolean }) { const minutes = Math.max(0, Math.round((Date.now() - new Date(order.createdAt).getTime()) / 60000)); return <article className="rounded-2xl border border-stone-200 bg-[#fffdf9] p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-extrabold uppercase tracking-[.14em] text-stone-500">Senha</p><p className="font-display text-4xl font-bold text-[#9c321e]">{String(order.ticket).padStart(2, "0")}</p></div><div className="text-right"><p className="text-xs font-bold text-stone-500">{formatTime.format(new Date(order.createdAt))}</p><p className="mt-1 text-xs font-bold text-orange-700">{minutes} min</p></div></div><div className="my-3 border-t border-stone-100 pt-3">{items.map(item => <div key={item.id} className="flex justify-between gap-3 py-1 text-sm"><span><strong>{item.quantity}×</strong> {item.productName}</span><span className="text-stone-500">{money.format(Number(item.subtotal))}</span></div>)}</div>{order.note ? <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{order.note}</p> : null}<div className="flex gap-2"><Button disabled={disabled} onClick={onAction} className="h-11 flex-1 rounded-xl bg-stone-900 text-sm font-bold hover:bg-[#9c321e]">{action}</Button><Button disabled={disabled} variant="outline" onClick={onCancel} className="h-11 rounded-xl border-rose-200 text-rose-700 hover:bg-rose-50"><X className="h-4 w-4" /></Button></div></article>; }
+
+function Dashboard({ orders, metrics, connection, goTo }: { orders: Order[]; metrics: Metrics | undefined; connection: Connection | undefined; goTo: (tab: Tab) => void }) {
+  const cards = [
+    { label: "Vendas registradas", value: money.format(metrics?.sales ?? 0), icon: TrendingUp, hint: "Pedidos não cancelados" },
+    { label: "Pedidos atendidos", value: String(metrics?.totalOrders ?? 0), icon: ReceiptText, hint: "No período atual" },
+    { label: "Ticket médio", value: money.format(metrics?.ticketAverage ?? 0), icon: Gauge, hint: "Média por pedido" },
+    { label: "Em produção", value: String((metrics?.queues.NEW ?? 0) + (metrics?.queues.PREPARING ?? 0)), icon: ChefHat, hint: "Fila ativa" },
+  ];
+  const ready = metrics?.queues.READY ?? 0;
+  return <section><div className="mb-6"><p className="text-sm font-bold uppercase tracking-[.16em] text-orange-800">Visão operacional</p><h1 className="font-display text-3xl font-bold">A barraca em um único olhar.</h1></div><div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">{cards.map(card => <div key={card.label} className="rounded-3xl border border-stone-200 bg-white p-5 shadow-[0_14px_36px_-28px_rgba(72,35,16,.35)]"><div className="flex items-start justify-between"><div className="rounded-2xl bg-orange-50 p-3 text-[#9c321e]"><card.icon className="h-5 w-5" /></div><span className="text-xs font-bold text-stone-500">{card.hint}</span></div><p className="mt-5 text-sm font-bold text-stone-500">{card.label}</p><p className="font-display mt-1 text-3xl font-bold">{card.value}</p></div>)}</div><div className="mt-6 grid gap-6 2xl:grid-cols-[1.25fr_.75fr]"><div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[.15em] text-stone-500">Fluxo da fila</p><h2 className="font-display text-2xl font-bold">Pedidos por etapa</h2></div><Button variant="outline" onClick={() => goTo("producao")} className="rounded-xl">Abrir produção</Button></div><div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4">{(["NEW", "PREPARING", "READY", "DELIVERED"] as Status[]).map(status => <div key={status} className="rounded-2xl border border-stone-100 p-4"><p className="text-xs font-bold text-stone-500">{meta[status].label}</p><p className="font-display mt-2 text-3xl font-bold">{metrics?.queues[status] ?? 0}</p><div className={cn("mt-3 h-1.5 rounded-full", status === "NEW" ? "bg-amber-400" : status === "PREPARING" ? "bg-orange-500" : status === "READY" ? "bg-emerald-500" : "bg-stone-400")} /></div>)}</div><div className="mt-8 grid grid-cols-2 gap-4 rounded-2xl bg-stone-50 p-4"><div><p className="text-xs font-bold text-stone-500">Prontos para chamar</p><p className="mt-1 text-2xl font-black text-emerald-700">{ready}</p></div><div><p className="text-xs font-bold text-stone-500">Entregues</p><p className="mt-1 text-2xl font-black text-stone-800">{orders.filter(order => order.status === "DELIVERED").length}</p></div></div></div><div className="rounded-[2rem] bg-stone-900 p-6 text-white shadow-xl shadow-stone-900/15"><p className="text-xs font-extrabold uppercase tracking-[.15em] text-orange-300">Saúde do sistema</p><h2 className="font-display mt-1 text-2xl font-bold">Operação local</h2><div className="mt-6 space-y-3"><SystemRow icon={Wifi} label="Rede local" state="ONLINE" /><SystemRow icon={Boxes} label="Banco de dados" state={connection?.database ?? "OFFLINE"} /><SystemRow icon={Radio} label="Controlador Arduino" state={connection?.hardware.state ?? "OFFLINE"} /></div><p className="mt-6 border-t border-white/15 pt-4 text-xs leading-5 text-stone-300">A caixa e as filas continuam disponíveis mesmo quando o controlador físico estiver desconectado.</p></div></div></section>;
+}
+
+function SystemRow({ icon: Icon, label, state }: { icon: typeof Wifi; label: string; state: string }) { const online = state === "ONLINE"; return <div className="flex items-center justify-between rounded-2xl bg-white/10 p-4"><div className="flex items-center gap-3"><Icon className="h-5 w-5 text-orange-300" /><span className="text-sm font-bold">{label}</span></div><span className={cn("rounded-full px-2.5 py-1 text-xs font-black", online ? "bg-emerald-400/20 text-emerald-200" : "bg-rose-400/20 text-rose-200")}>{online ? "ONLINE" : state}</span></div>; }
+
+function Settings({ products, settings, connection, refresh }: { products: Product[]; settings: { key: string; value: string }[]; connection: Connection | undefined; refresh: () => void }) {
+  const blank = { id: undefined as number | undefined, name: "", description: "", category: "", price: "", available: true };
+  const [editor, setEditor] = useState(blank);
+  const [parameter, setParameter] = useState({ key: "", value: "" });
+  const saveProduct = trpc.operations.saveProduct.useMutation({ onSuccess: () => { toast.success("Produto salvo."); setEditor(blank); refresh(); }, onError: error => toast.error(error.message) });
+  const saveSetting = trpc.operations.saveSetting.useMutation({ onSuccess: () => { toast.success("Parâmetro salvo."); setParameter({ key: "", value: "" }); refresh(); }, onError: error => toast.error(error.message) });
+  const connect = trpc.connectivity.connectHardware.useMutation({ onSuccess: () => { toast.info("Verificação de conexão iniciada."); refresh(); } });
+  const test = trpc.connectivity.testHardware.useMutation({ onSuccess: result => { toast.info(result.accepted.accepted ? "Teste enviado à fila de hardware." : "Comando duplicado ignorado."); refresh(); } });
+  const edit = (product: Product) => setEditor({ id: product.id, name: product.name, description: product.description ?? "", category: product.category, price: String(product.price), available: product.available });
+  const submitProduct = () => saveProduct.mutate({ id: editor.id, name: editor.name, description: editor.description || undefined, category: editor.category, price: Number(editor.price), available: editor.available });
+  return <section><div className="mb-6"><p className="text-sm font-bold uppercase tracking-[.16em] text-orange-800">Parâmetros da barraca</p><h1 className="font-display text-3xl font-bold">Tudo que muda fica configurável.</h1></div><div className="grid gap-6 2xl:grid-cols-[1.25fr_.75fr]"><div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><div><h2 className="font-display text-2xl font-bold">Produtos e disponibilidade</h2><p className="mt-1 text-sm text-stone-600">O catálogo é a fonte de verdade para o caixa.</p></div><Button onClick={() => setEditor(blank)} className="rounded-xl bg-[#9c321e] font-bold hover:bg-[#7f2819]"><Plus className="mr-1 h-4 w-4" />Novo</Button></div><div className="mt-5 overflow-hidden rounded-2xl border border-stone-100">{products.length ? <div className="divide-y divide-stone-100">{products.map(product => <button key={product.id} onClick={() => edit(product)} className="flex w-full items-center gap-4 px-4 py-4 text-left hover:bg-stone-50"><div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-50 text-[#9c321e]"><ShoppingBasket className="h-4 w-4" /></div><div className="min-w-0 flex-1"><p className="font-bold text-stone-900">{product.name}</p><p className="truncate text-xs text-stone-500">{product.category}{product.description ? ` · ${product.description}` : ""}</p></div><p className="font-bold text-stone-800">{money.format(Number(product.price))}</p><span className={cn("rounded-full px-3 py-1 text-xs font-bold", product.available ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-600")}>{product.available ? "Disponível" : "Indisponível"}</span></button>)}</div> : <div className="p-8 text-center text-sm text-stone-500">Nenhum produto cadastrado.</div>}</div></div><div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-50 text-[#9c321e]"><PanelTopOpen className="h-5 w-5" /></div><div><h2 className="font-display text-2xl font-bold">Parâmetros operacionais</h2><p className="text-sm text-stone-600">Comportamentos ajustáveis sem valores fixos.</p></div></div><div className="mt-5 space-y-3">{settings.length ? settings.map(setting => <div key={setting.key} className="rounded-xl bg-stone-50 p-3"><p className="text-xs font-bold uppercase tracking-[.12em] text-stone-500">{setting.key}</p><p className="mt-1 font-semibold text-stone-900">{setting.value}</p></div>) : <p className="rounded-xl bg-stone-50 p-4 text-sm text-stone-500">Ainda não há parâmetros registrados.</p>}</div><div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto]"><Input value={parameter.key} onChange={event => setParameter(current => ({ ...current, key: event.target.value }))} placeholder="Chave" /><Input value={parameter.value} onChange={event => setParameter(current => ({ ...current, value: event.target.value }))} placeholder="Valor" /><Button disabled={!parameter.key || !parameter.value || saveSetting.isPending} onClick={() => saveSetting.mutate(parameter)} className="rounded-xl bg-stone-900">Salvar</Button></div></div></div><div className="mt-6 grid gap-6 2xl:grid-cols-[1.25fr_.75fr]"><div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[.14em] text-stone-500">Integração física</p><h2 className="font-display text-2xl font-bold">Arduino independente da operação</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-stone-600">Pedidos continuam funcionando se LEDs ou sirene estiverem desconectados. A ponte física recebe comandos por fila e registra suas tentativas.</p></div><ConnectionBadge label="Arduino" online={connection?.hardware.state === "ONLINE"} /></div><div className="mt-5 grid gap-4 md:grid-cols-[1fr_auto_auto]"><div className="rounded-2xl bg-stone-50 p-4 text-sm text-stone-600"><p><strong>Fila de comandos:</strong> {connection?.hardware.queued ?? 0}</p><p className="mt-1"><strong>Estado:</strong> {connection?.hardware.state ?? "OFFLINE"}</p></div><Button disabled={connect.isPending} onClick={() => connect.mutate()} variant="outline" className="h-12 rounded-xl">{connect.isPending ? "Conectando…" : "Verificar conexão"}</Button><Button disabled={test.isPending} onClick={() => test.mutate()} className="h-12 rounded-xl bg-[#9c321e] hover:bg-[#7f2819]"><BellRing className="mr-2 h-4 w-4" />Testar alerta</Button></div></div><div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"><h2 className="font-display text-2xl font-bold">{editor.id ? "Editar produto" : "Cadastrar produto"}</h2><div className="mt-4 grid gap-3"><div><Label htmlFor="product-name">Nome</Label><Input id="product-name" className="mt-1" value={editor.name} onChange={event => setEditor(current => ({ ...current, name: event.target.value }))} placeholder="Ex.: Cachorro-quente" /></div><div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="product-category">Categoria</Label><Input id="product-category" className="mt-1" value={editor.category} onChange={event => setEditor(current => ({ ...current, category: event.target.value }))} placeholder="Ex.: Lanches" /></div><div><Label htmlFor="product-price">Preço</Label><Input id="product-price" type="number" min="0" step="0.01" className="mt-1" value={editor.price} onChange={event => setEditor(current => ({ ...current, price: event.target.value }))} placeholder="0,00" /></div></div><div><Label htmlFor="product-description">Descrição</Label><Input id="product-description" className="mt-1" value={editor.description} onChange={event => setEditor(current => ({ ...current, description: event.target.value }))} placeholder="Descrição opcional" /></div><div className="flex items-center justify-between rounded-xl bg-stone-50 p-3"><Label htmlFor="product-available" className="font-bold">Disponível no caixa</Label><Switch id="product-available" checked={editor.available} onCheckedChange={checked => setEditor(current => ({ ...current, available: checked }))} /></div><div className="flex gap-3"><Button disabled={!editor.name || !editor.category || !editor.price || saveProduct.isPending} onClick={submitProduct} className="flex-1 rounded-xl bg-[#9c321e] hover:bg-[#7f2819]">{saveProduct.isPending ? "Salvando…" : "Salvar produto"}</Button>{editor.id ? <Button variant="outline" onClick={() => setEditor(blank)} className="rounded-xl">Cancelar</Button> : null}</div></div></div></div></section>;
+}
+
+function Diagnostics({ events, hardware }: { events: EventLog[]; hardware: { at: Date; message: string; level: string }[] }) {
+  return <section className="mt-6 grid gap-6 2xl:grid-cols-[1.2fr_.8fr]"><div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-stone-900 text-orange-300"><ReceiptText className="h-5 w-5" /></div><div><p className="text-xs font-extrabold uppercase tracking-[.14em] text-stone-500">Auditoria</p><h2 className="font-display text-2xl font-bold">Eventos recentes da operação</h2></div></div><div className="mt-5 max-h-80 divide-y divide-stone-100 overflow-y-auto rounded-2xl border border-stone-100">{events.length ? events.map(event => <div key={event.id} className="flex items-start justify-between gap-4 px-4 py-3"><div><p className="font-bold text-stone-800">{event.type.replaceAll("_", " ")}</p><p className="mt-1 text-xs text-stone-500">{event.entityType ? `${event.entityType}${event.entityId ? ` #${event.entityId}` : ""}` : "Sistema"}</p></div><time className="shrink-0 text-xs font-semibold text-stone-500">{formatTime.format(new Date(event.createdAt))}</time></div>) : <div className="p-6 text-sm text-stone-500">Os eventos aparecerão aqui conforme a barraca for operada.</div>}</div></div><div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-50 text-[#9c321e]"><Radio className="h-5 w-5" /></div><div><p className="text-xs font-extrabold uppercase tracking-[.14em] text-stone-500">Diagnóstico físico</p><h2 className="font-display text-2xl font-bold">Comunicação do Arduino</h2></div></div><div className="mt-5 max-h-80 space-y-3 overflow-y-auto">{hardware.length ? hardware.map((log, index) => <div key={`${log.at}-${index}`} className="rounded-xl bg-stone-50 p-3"><div className="flex items-center justify-between gap-3"><span className={cn("text-xs font-black uppercase", log.level === "error" ? "text-rose-700" : log.level === "warn" ? "text-amber-700" : "text-emerald-700")}>{log.level}</span><time className="text-xs text-stone-500">{formatTime.format(new Date(log.at))}</time></div><p className="mt-1 text-sm text-stone-700">{log.message}</p></div>) : <p className="rounded-xl bg-stone-50 p-4 text-sm text-stone-500">Ainda não há registros da ponte de hardware nesta sessão.</p>}</div></div></section>;
 }

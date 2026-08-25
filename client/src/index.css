@@ -52,9 +52,9 @@
   --chart-3: var(--color-blue-600);
   --chart-4: var(--color-blue-700);
   --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
+  --radius: 1rem;
+  --background: oklch(0.97 0.012 78);
+  --foreground: oklch(0.24 0.025 56);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.235 0.015 65);
   --popover: oklch(1 0 0);
@@ -119,6 +119,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "DM Sans", sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -130,6 +131,14 @@
   input[type="checkbox"]:not(:disabled),
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: "Fraunces", Georgia, serif; }
+  .paper-grid {
+    background-image: linear-gradient(oklch(0.82 0.025 70 / 20%) 1px, transparent 1px), linear-gradient(90deg, oklch(0.82 0.025 70 / 20%) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 }
 
