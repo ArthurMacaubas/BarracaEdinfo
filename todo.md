@@ -68,3 +68,9 @@
 - [x] Validar visualmente a celebração, o carrossel e os estados de exibição pública
 - [x] Substituir a espera por chamada promocional sobre sirene e retirada gratuita
 - [x] Remover referências públicas a senha, chamada e histórico de senhas
+- [x] Corrigir o salvamento persistente do código PIX copia e cola
+- [x] Validar o código PIX salvo na criação da campanha pública
+- [x] Executar o teste automatizado de persistência do código PIX por chave única
+- [x] Validar o fluxo PIX salvo até a criação da campanha pública no segundo monitor
+- [x] Testar a persistência do PIX seguida da criação de campanha pública no mesmo fluxo
+- [x] Validar no painel público que a campanha PIX usa o código recém-salvo

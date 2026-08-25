@@ -152,6 +152,8 @@
   .confetti-burst { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
   .confetti-piece { position: absolute; width: 12px; height: 19px; border-radius: 3px; opacity: 0; animation: confetti-fall 2100ms cubic-bezier(.15,.75,.25,1) var(--delay) both; }
   .confetti-ribbon { width: 7px; height: 28px; border-radius: 999px; }
+  label[for="pix-payload"]::after { content: " — use o painel de salvamento PIX abaixo"; color: oklch(0.55 0.04 50); font-size: .75rem; font-weight: 700; }
+  #pix-payload, #pix-payload + p { display: none; }
   @keyframes confetti-fall { 0% { opacity: 0; transform: translate3d(0,-40px,0) rotate(0); } 10% { opacity: 1; } 100% { opacity: 0; transform: translate3d(var(--drift), 88vh, 0) rotate(var(--turn)); } }
   @keyframes sponsor-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) { .sponsor-track, .confetti-piece { animation: none; } .confetti-piece { display: none; } }
