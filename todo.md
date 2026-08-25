@@ -155,3 +155,14 @@
 - [x] Preservar o envio de arquivo de logo no novo formulário de pré-visualização
 - [x] Validar no DOM a logo e a cor exibidas na prévia administrativa antes do salvamento
 - [x] Registrar a evidência da prévia administrativa em 1280x720
+- [x] Expor uma ação de edição clara para cada patrocinador no painel administrativo
+- [x] Adicionar paleta de cores sugeridas à configuração de fundo do patrocinador
+- [x] Permitir reorganizar patrocinadores por arrastar e soltar e persistir a nova ordem
+- [x] Permitir configurar a duração da transição do carrossel de patrocinadores
+- [x] Aplicar a duração configurada à rotação e à transição da tela pública
+- [x] Cobrir persistência de ordem/duração e validar painel e carrossel em 1280x720
+- [x] Aplicar a duração configurada também ao intervalo de rotação do carrossel público
+- [x] Cobrir a persistência de sponsor_transition_ms no snapshot de configurações
+- [x] Validar a duração salva no painel sem parâmetro de prévia na tela pública
+- [x] Testar que sponsor_transition_ms salvo é retornado pelo snapshot operacional
+- [x] Validar a duração persistida na tela pública sem parâmetro de prévia

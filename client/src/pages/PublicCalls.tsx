@@ -1,5 +1,6 @@
 import { visibleSponsors } from "@/lib/publicCampaign";
 import { getManualPublicPixPayload, publicPixCampaign, type PixSetting } from "@/lib/pixPayload";
+import { getSponsorCarouselTiming } from "@/lib/sponsorCarousel";
 import { trpc } from "@/lib/trpc";
 import QRCode from "qrcode";
 import { BellRing, Flame, Gift, QrCode, Sparkles, Target, Wifi, Zap } from "lucide-react";
@@ -29,6 +30,8 @@ export default function PublicCalls() {
   const goalAlert = (preview === "goal" ? { id: -1, unitsAtTrigger: 50, message: "Pesa o cachorro-quente no local de retirada.", goal: { name: "50 completos", targetUnits: 50 } } : snapshot.data?.goalAlert) as GoalAlert | null | undefined;
   const pixCampaign = (preview === "pix" ? { id: -1, ticket: 99, pixPayload: "00020101021226260014br.gov.bcb.pix0104test5204000053039865802BR5903ABC6003RIO62070503***6304ABCD", activeUntil: previewPixActiveUntil } : snapshot.data?.pixCampaign) as PixCampaign | null | undefined;
   const settings = (snapshot.data?.settings ?? []) as PixSetting[];
+  const previewTransitionMs = Number(previewParams?.get("sponsorTransition"));
+  const sponsorTiming = getSponsorCarouselTiming(settings, previewTransitionMs);
   const manualPixPayload = getManualPublicPixPayload(settings);
   const manualPixCampaign = manualPixPayload ? { id: -2, orderId: undefined, ticket: null, pixPayload: manualPixPayload, activeUntil: new Date(Date.now() + 60_000) } : null;
   const activePixCampaign = preview === "pix" ? (previewParams?.get("pixPublic") !== "0" ? pixCampaign : null) : preview ? null : manualPixCampaign ?? publicPixCampaign(pixCampaign, settings);
@@ -88,7 +91,7 @@ export default function PublicCalls() {
 
       <footer className="sponsor-spotlight">
         <div className="sponsor-intro"><span><Sparkles className="h-4 w-4" />Nossos parceiros</span><strong>QUEM FAZ<br />A FESTA</strong><small><Wifi className="h-3.5 w-3.5" />Painel conectado</small></div>
-        <SponsorCarousel sponsors={sponsors} />
+        <SponsorCarousel sponsors={sponsors} transitionMs={sponsorTiming.transitionMs} rotationMs={sponsorTiming.rotationMs} />
       </footer>
     </div>
   </main>;
@@ -106,17 +109,17 @@ function PromotionAnnouncement() { return <div className="promotion-announcement
 
 function PixAnnouncement({ campaign, qrSource, remainingSeconds, confirmed }: { campaign: Omit<PixCampaign, "ticket"> & { ticket: number | null }; qrSource: string; remainingSeconds: number | null; confirmed: boolean }) { return <div className="pix-show relative z-10"><div className="pix-copy"><span className="stage-label"><QrCode className="h-4 w-4" />Pagamento rápido</span><h1>PIX<br /><em>NA HORA.</em></h1><p className="pix-caption">{campaign.ticket ? <>Pedido <strong>#{String(campaign.ticket).padStart(2, "0")}</strong> confirmado.</> : <>PIX liberado pelo caixa.</>} Escaneie o QR Code e conclua o pagamento.</p><span className="pix-dynamic-note"><span />QR Code dinâmico e atualizado</span>{remainingSeconds !== null ? <div className="pix-countdown"><div className="pix-countdown-ring" style={{ "--progress": `${Math.max(0, Math.min(1, remainingSeconds / 20))}` } as CSSProperties}><strong>{remainingSeconds}</strong><small>s</small></div><div><strong>QR disponível</strong><p>O código fecha automaticamente em {remainingSeconds} segundos.</p></div></div> : null}<div className={confirmed ? "pix-payment-status confirmed" : "pix-payment-status pending"}>{confirmed ? <><CheckCircle2Icon />Pagamento confirmado no caixa.</> : <>Aguardando confirmação do pagamento no caixa.</>}</div></div><div className="pix-qr-frame"><div className="pix-qr-head"><Sparkles className="h-4 w-4" />Aponte a câmera</div><div className="pix-qr-shell">{qrSource ? <img src={qrSource} alt="QR Code PIX dinâmico" /> : <QrCode className="h-16 w-16 text-[#311111]" />}<i className="pix-scan-line" /></div><small>Pagamento via PIX</small></div></div>; }
 
-function SponsorCarousel({ sponsors }: { sponsors: Sponsor[] }) {
+function SponsorCarousel({ sponsors, transitionMs, rotationMs }: { sponsors: Sponsor[]; transitionMs: number; rotationMs: number }) {
   const [activeIndex, setActiveIndex] = useState(0);
   useEffect(() => {
     setActiveIndex(0);
     if (sponsors.length < 2) return;
-    const timer = window.setInterval(() => setActiveIndex(current => (current + 1) % sponsors.length), 6_000);
+    const timer = window.setInterval(() => setActiveIndex(current => (current + 1) % sponsors.length), rotationMs);
     return () => window.clearInterval(timer);
-  }, [sponsors.length]);
+  }, [sponsors.length, rotationMs]);
   const visible = sponsors.slice(0, Math.min(3, sponsors.length)).map((_, offset) => sponsors[(activeIndex + offset) % sponsors.length]);
   if (!visible.length) return <div className="sponsor-viewport"><p className="empty-sponsors">Este espaço é dos parceiros da Barraca Agostina.</p></div>;
-  return <div className="sponsor-viewport"><div className="sponsor-three-grid" key={activeIndex}>{visible.map((sponsor, index) => <article key={`${sponsor.id}-${activeIndex}`} className={`sponsor-tile sponsor-tile-${index}`} style={{ backgroundColor: sponsor.backgroundColor || "#fffaf0" }}><img src={sponsor.imageUrl} alt={`Patrocinador ${sponsor.name}`} /><p>{sponsor.name}</p></article>)}</div>{sponsors.length > 3 ? <div className="sponsor-dots" aria-label={`Grupo ${activeIndex + 1} de ${sponsors.length}`}>{sponsors.map((sponsor, index) => <span key={sponsor.id} className={index === activeIndex ? "active" : ""} />)}</div> : null}</div>;
+  return <div className="sponsor-viewport"><div className="sponsor-three-grid" data-rotation-ms={rotationMs} style={{ "--sponsor-transition-duration": `${transitionMs}ms` } as CSSProperties} key={activeIndex}>{visible.map((sponsor, index) => <article key={`${sponsor.id}-${activeIndex}`} className={`sponsor-tile sponsor-tile-${index}`} style={{ backgroundColor: sponsor.backgroundColor || "#fffaf0" }}><img src={sponsor.imageUrl} alt={`Patrocinador ${sponsor.name}`} /><p>{sponsor.name}</p></article>)}</div>{sponsors.length > 3 ? <div className="sponsor-dots" aria-label={`Grupo ${activeIndex + 1} de ${sponsors.length}`}>{sponsors.map((sponsor, index) => <span key={sponsor.id} className={index === activeIndex ? "active" : ""} />)}</div> : null}</div>;
 }
 
 function CheckCircle2Icon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.4 9.2 17 19 7" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" /></svg>; }

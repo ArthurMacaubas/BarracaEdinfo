@@ -5,7 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
 import { hardwareController } from "./hardware";
-import { confirmPixPayment, createOrder, createOrUpdateProduct, getOperationalSnapshot, listAvailableProducts, listPendingPixPayments, PAYMENT_METHODS, recordEvent, resetSalesGoalCycle, saveSetting, saveSponsor, saveUnitGoal, setUnitGoalConcurrency, setUnitGoalStatus } from "./operations";
+import { confirmPixPayment, createOrder, createOrUpdateProduct, getOperationalSnapshot, listAvailableProducts, listPendingPixPayments, PAYMENT_METHODS, recordEvent, reorderSponsors, resetSalesGoalCycle, saveSetting, saveSponsor, saveUnitGoal, setUnitGoalConcurrency, setUnitGoalStatus } from "./operations";
 
 export const appRouter = router({
   system: systemRouter,
@@ -26,6 +26,7 @@ export const appRouter = router({
     setUnitGoalStatus: publicProcedure.input(z.object({ goalId: z.number().int().positive(), status: z.enum(["QUEUED", "PAUSED"]) })).mutation(({ input }) => setUnitGoalStatus(input.goalId, input.status)),
     setUnitGoalConcurrency: publicProcedure.input(z.object({ value: z.number().int().min(1).max(10) })).mutation(({ input }) => setUnitGoalConcurrency(input.value)),
     saveSponsor: publicProcedure.input(z.object({ id: z.number().int().positive().optional(), name: z.string().min(1).max(120), imageUrl: z.string().max(2_000).optional(), imageData: z.string().max(3_600_000).optional(), backgroundColor: z.string().regex(/^#(?:[\da-fA-F]{3}|[\da-fA-F]{6})$/).optional(), enabled: z.boolean(), sortOrder: z.number().int().min(0).max(999).optional() })).mutation(({ input }) => saveSponsor(input)),
+    reorderSponsors: publicProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(300) })).mutation(({ input }) => reorderSponsors(input.ids)),
   }),
   connectivity: router({
     status: publicProcedure.query(async () => { const database = Boolean(await getDb()); return { database: database ? "ONLINE" : "OFFLINE", hardware: hardwareController.getSnapshot(), serverTime: new Date() }; }),

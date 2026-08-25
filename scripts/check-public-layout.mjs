@@ -30,7 +30,8 @@ try {
     const sponsorBefore = name === "promocao" ? (await page.locator(".sponsor-tile p").allTextContents()).join("|") : "";
     let sponsorAfter = "";
     if (name === "promocao") {
-      await page.waitForTimeout(6_200);
+      const rotationMs = Number(await page.locator(".sponsor-three-grid").getAttribute("data-rotation-ms") ?? "2240");
+      await page.waitForTimeout(rotationMs + 700);
       sponsorAfter = (await page.locator(".sponsor-tile p").allTextContents()).join("|");
       await page.screenshot({ path: join(evidenceDirectory, "tela-publica-promocao-rotacionada-1280x720.png") });
     }
@@ -53,6 +54,8 @@ try {
       const sponsorImageFits = Array.from(document.querySelectorAll(".sponsor-tile img")).every(image => getComputedStyle(image).objectFit === "contain");
       const sponsorBackgrounds = Array.from(sponsorTiles).map(tile => getComputedStyle(tile).backgroundColor);
       const sponsorGroupAnimation = getComputedStyle(document.querySelector(".sponsor-three-grid") ?? document.body).animationName;
+      const sponsorTransitionDuration = getComputedStyle(document.querySelector(".sponsor-three-grid") ?? document.body).animationDuration;
+      const sponsorRotationMs = Number(document.querySelector(".sponsor-three-grid")?.getAttribute("data-rotation-ms") ?? "0");
       const toBounds = (element) => element ? (() => {
         const { top, right, bottom, left, width, height } = element.getBoundingClientRect();
         return { top, right, bottom, left, width, height };
@@ -81,6 +84,8 @@ try {
         sponsorImageFits,
         sponsorBackgrounds,
         sponsorGroupAnimation,
+        sponsorTransitionDuration,
+        sponsorRotationMs,
       };
     });
     layout.sponsorBefore = sponsorBefore;
@@ -108,7 +113,9 @@ try {
     const sponsorsWithoutCrop = name !== "promocao" || layout.sponsorImageFits;
     const sponsorColorsApplied = name !== "promocao" || layout.sponsorBackgrounds.every(color => color !== "rgba(0, 0, 0, 0)");
     const sponsorTransitionApplied = name !== "promocao" || layout.sponsorGroupAnimation.includes("sponsor-group-in");
-    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !pixConfirmationIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates || !hasThreeSponsors || !sponsorsWithoutCrop || !sponsorColorsApplied || !sponsorTransitionApplied) {
+    const sponsorDurationApplied = name !== "promocao" || layout.sponsorTransitionDuration === "0.56s";
+    const sponsorRotationApplied = name !== "promocao" || layout.sponsorRotationMs === 2240;
+    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !pixConfirmationIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates || !hasThreeSponsors || !sponsorsWithoutCrop || !sponsorColorsApplied || !sponsorTransitionApplied || !sponsorDurationApplied || !sponsorRotationApplied) {
       throw new Error(`Layout público excede o monitor em ${route}: ${JSON.stringify(layout)}`);
     }
     results.push({ state: name, route, screenshotPath, ...layout });

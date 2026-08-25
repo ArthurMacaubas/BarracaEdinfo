@@ -47,4 +47,17 @@ describe("configuração do PIX", () => {
     expect(settingValues).toHaveBeenCalledWith({ key: "public_pix_manual_display", value: "true" });
     expect(upsert).toHaveBeenCalledWith({ set: { value: "true" } });
   });
+
+  it("persiste a duração configurada do carrossel de patrocinadores", async () => {
+    const upsert = vi.fn().mockResolvedValue(undefined);
+    const settingValues = vi.fn(() => ({ onDuplicateKeyUpdate: upsert }));
+    const eventValues = vi.fn().mockResolvedValue(undefined);
+    const insert = vi.fn().mockReturnValueOnce({ values: settingValues }).mockReturnValueOnce({ values: eventValues });
+    vi.mocked(getDb).mockResolvedValue({ insert } as never);
+
+    await saveSetting("sponsor_transition_ms", "900");
+
+    expect(settingValues).toHaveBeenCalledWith({ key: "sponsor_transition_ms", value: "900" });
+    expect(upsert).toHaveBeenCalledWith({ set: { value: "900" } });
+  });
 });

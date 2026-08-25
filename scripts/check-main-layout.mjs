@@ -35,15 +35,20 @@ try {
       const legacyGoal = document.querySelector("#sales-goal");
       const sponsorPreviewSurface = document.querySelector("[data-testid='sponsor-preview-surface']");
       const sponsorPreviewImage = document.querySelector("[data-testid='sponsor-preview-image']");
+      const sponsorEditActions = Array.from(document.querySelectorAll("button")).filter(button => button.textContent?.includes("Editar")).length;
+      const draggableSponsors = document.querySelectorAll("article[draggable='true']").length;
+      const suggestedColors = document.querySelectorAll("button[aria-label^='Usar ']").length;
+      const transitionControl = document.querySelector("input[aria-label='Duração da transição']");
       const bounds = element => element ? (() => { const { top, right, bottom, left } = element.getBoundingClientRect(); return { top, right, bottom, left }; })() : null;
       const isVisible = element => Boolean(element && (() => { const style = getComputedStyle(element); const rect = element.getBoundingClientRect(); return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0; })());
-      return { innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, headerBounds: bounds(header), headingBounds: bounds(heading), productTitleBounds: bounds(productTitle), hardwareTitleBounds: bounds(hardwareTitle), legacyGoalVisible: isVisible(legacyGoal), sponsorPreviewImageVisible: isVisible(sponsorPreviewImage), sponsorPreviewColor: sponsorPreviewSurface ? getComputedStyle(sponsorPreviewSurface).backgroundColor : null };
+      return { innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, headerBounds: bounds(header), headingBounds: bounds(heading), productTitleBounds: bounds(productTitle), hardwareTitleBounds: bounds(hardwareTitle), legacyGoalVisible: isVisible(legacyGoal), sponsorPreviewImageVisible: isVisible(sponsorPreviewImage), sponsorPreviewColor: sponsorPreviewSurface ? getComputedStyle(sponsorPreviewSurface).backgroundColor : null, sponsorEditActions, draggableSponsors, suggestedColors, transitionControlVisible: isVisible(transitionControl) };
     });
     const fitsHorizontally = layout.scrollWidth <= layout.innerWidth + 1 && layout.bodyWidth <= layout.innerWidth + 1;
     const keyElementsVisible = layout.headerBounds && layout.headingBounds && layout.headerBounds.left >= 0 && layout.headerBounds.right <= layout.innerWidth && layout.headingBounds.left >= 0 && layout.headingBounds.right <= layout.innerWidth && layout.headingBounds.bottom <= 720;
     const cadastroPreserved = item.name !== "cadastro" || (layout.productTitleBounds && layout.productTitleBounds.right > layout.productTitleBounds.left && layout.hardwareTitleBounds && layout.hardwareTitleBounds.right > layout.hardwareTitleBounds.left && !layout.legacyGoalVisible);
     const sponsorPreviewIsAccurate = item.name !== "cadastro" || (layout.sponsorPreviewImageVisible && layout.sponsorPreviewColor === "rgb(180, 83, 9)");
-    if (!fitsHorizontally || !keyElementsVisible || !cadastroPreserved || !sponsorPreviewIsAccurate) throw new Error(`Página principal não cabe corretamente em ${item.route}: ${JSON.stringify(layout)}`);
+    const sponsorManagementReady = item.name !== "cadastro" || (layout.sponsorEditActions > 0 && layout.draggableSponsors > 0 && layout.suggestedColors >= 6 && layout.transitionControlVisible);
+    if (!fitsHorizontally || !keyElementsVisible || !cadastroPreserved || !sponsorPreviewIsAccurate || !sponsorManagementReady) throw new Error(`Página principal não cabe corretamente em ${item.route}: ${JSON.stringify(layout)}`);
     results.push({ ...item, screenshotPath, ...layout });
     console.log(`OK ${item.route} ${JSON.stringify(layout)}`);
   }
