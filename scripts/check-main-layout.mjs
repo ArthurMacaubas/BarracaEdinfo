@@ -18,6 +18,12 @@ try {
   const results = [];
   for (const item of pages) {
     await page.goto(`${baseUrl}${item.route}`, { waitUntil: "networkidle" });
+    if (item.name === "cadastro") {
+      await page.locator("#sponsor-visual-name").fill("Prévia da Padaria");
+      await page.locator("#sponsor-visual-url").fill("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120'%3E%3Crect width='100%25' height='100%25' fill='%23ffffff'/%3E%3Ctext x='120' y='70' text-anchor='middle' font-size='28'%3ELOGO%3C/text%3E%3C/svg%3E");
+      await page.locator("#sponsor-visual-color").evaluate(input => { const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set; setter?.call(input, "#b45309"); input.dispatchEvent(new Event("input", { bubbles: true })); input.dispatchEvent(new Event("change", { bubbles: true })); });
+      await page.evaluate(() => window.scrollTo(0, 0));
+    }
     const screenshotPath = join(evidenceDirectory, `tela-principal-${item.name}-1280x720.png`);
     await page.screenshot({ path: screenshotPath });
     const layout = await page.evaluate(() => {
@@ -27,14 +33,17 @@ try {
       const productTitle = sectionByTitle("Produtos");
       const hardwareTitle = sectionByTitle("Conexão do hardware");
       const legacyGoal = document.querySelector("#sales-goal");
+      const sponsorPreviewSurface = document.querySelector("[data-testid='sponsor-preview-surface']");
+      const sponsorPreviewImage = document.querySelector("[data-testid='sponsor-preview-image']");
       const bounds = element => element ? (() => { const { top, right, bottom, left } = element.getBoundingClientRect(); return { top, right, bottom, left }; })() : null;
       const isVisible = element => Boolean(element && (() => { const style = getComputedStyle(element); const rect = element.getBoundingClientRect(); return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0; })());
-      return { innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, headerBounds: bounds(header), headingBounds: bounds(heading), productTitleBounds: bounds(productTitle), hardwareTitleBounds: bounds(hardwareTitle), legacyGoalVisible: isVisible(legacyGoal) };
+      return { innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, headerBounds: bounds(header), headingBounds: bounds(heading), productTitleBounds: bounds(productTitle), hardwareTitleBounds: bounds(hardwareTitle), legacyGoalVisible: isVisible(legacyGoal), sponsorPreviewImageVisible: isVisible(sponsorPreviewImage), sponsorPreviewColor: sponsorPreviewSurface ? getComputedStyle(sponsorPreviewSurface).backgroundColor : null };
     });
     const fitsHorizontally = layout.scrollWidth <= layout.innerWidth + 1 && layout.bodyWidth <= layout.innerWidth + 1;
     const keyElementsVisible = layout.headerBounds && layout.headingBounds && layout.headerBounds.left >= 0 && layout.headerBounds.right <= layout.innerWidth && layout.headingBounds.left >= 0 && layout.headingBounds.right <= layout.innerWidth && layout.headingBounds.bottom <= 720;
     const cadastroPreserved = item.name !== "cadastro" || (layout.productTitleBounds && layout.productTitleBounds.right > layout.productTitleBounds.left && layout.hardwareTitleBounds && layout.hardwareTitleBounds.right > layout.hardwareTitleBounds.left && !layout.legacyGoalVisible);
-    if (!fitsHorizontally || !keyElementsVisible || !cadastroPreserved) throw new Error(`Página principal não cabe corretamente em ${item.route}: ${JSON.stringify(layout)}`);
+    const sponsorPreviewIsAccurate = item.name !== "cadastro" || (layout.sponsorPreviewImageVisible && layout.sponsorPreviewColor === "rgb(180, 83, 9)");
+    if (!fitsHorizontally || !keyElementsVisible || !cadastroPreserved || !sponsorPreviewIsAccurate) throw new Error(`Página principal não cabe corretamente em ${item.route}: ${JSON.stringify(layout)}`);
     results.push({ ...item, screenshotPath, ...layout });
     console.log(`OK ${item.route} ${JSON.stringify(layout)}`);
   }

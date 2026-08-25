@@ -4,16 +4,17 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import PublicPixToggle from "@/components/PublicPixToggle";
+import SponsorVisualManager, { type VisualSponsor } from "@/components/SponsorVisualManager";
 import { trpc } from "@/lib/trpc";
 import { Pencil, Power, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-type Sponsor = { id: number; name: string; imageUrl: string; enabled: boolean; sortOrder: number };
+type Sponsor = VisualSponsor;
 type Setting = { key: string; value: string };
 
 export default function SponsorControls({ sponsors, refresh }: { sponsors: Sponsor[]; refresh: () => void }) {
-  return <><PixPayloadControl refresh={refresh} /><PublicPixToggle refresh={refresh} />{sponsors.length ? <SponsorManager sponsors={sponsors} refresh={refresh} /> : null}</>;
+  return <><PixPayloadControl refresh={refresh} /><PublicPixToggle refresh={refresh} /><SponsorVisualManager sponsors={sponsors} refresh={refresh} /></>;
 }
 
 function PixPayloadControl({ refresh }: { refresh: () => void }) {

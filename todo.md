@@ -147,3 +147,11 @@
 - [x] Comprovar que o cartão financeiro legado não é renderizado no DOM
 - [x] Exibir imagens de patrocinadores completas, sem recorte, na grade pública de três marcas
 - [x] Validar o novo enquadramento dos patrocinadores em 1280x720
+- [x] Adicionar pré-visualização administrativa da logo antes de salvar o patrocinador
+- [x] Permitir configurar e persistir a cor de fundo individual do patrocinador
+- [x] Aplicar a cor configurada ao espaço livre ao redor da logo na tela pública
+- [x] Criar transição suave para a troca simultânea do grupo de três patrocinadores
+- [x] Cobrir a persistência da cor e validar a prévia e o carrossel em 1280x720
+- [x] Preservar o envio de arquivo de logo no novo formulário de pré-visualização
+- [x] Validar no DOM a logo e a cor exibidas na prévia administrativa antes do salvamento
+- [x] Registrar a evidência da prévia administrativa em 1280x720

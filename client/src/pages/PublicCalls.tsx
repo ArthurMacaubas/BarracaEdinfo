@@ -7,7 +7,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useLocation } from "wouter";
 import "./public-screen.css";
 
-type Sponsor = { id: number; name: string; imageUrl: string };
+type Sponsor = { id: number; name: string; imageUrl: string; backgroundColor?: string };
 type GoalAlert = { id: number; goalAmount?: string; salesAtTrigger?: string; unitsAtTrigger?: number; message: string; goal?: { name: string; targetUnits: number } | null };
 type PixCampaign = { id: number; orderId?: number; ticket: number; pixPayload: string; activeUntil: Date };
 type PixOrder = { id: number; pixConfirmedAt: Date | null };
@@ -21,9 +21,9 @@ export default function PublicCalls() {
   const preview = previewParams?.get("preview") ?? null;
   const [previewPixActiveUntil] = useState(() => new Date(Date.now() + 20_000));
   const previewSponsors: Sponsor[] = previewParams?.get("sponsors") === "1" ? [
-    { id: -101, name: "Apoiador 1", imageUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='160'%3E%3Crect width='100%25' height='100%25' rx='18' fill='%23fff7e7'/%3E%3Ctext x='200' y='92' text-anchor='middle' font-family='Georgia' font-weight='700' font-size='36' fill='%239c321e'%3EAPOIADOR 1%3C/text%3E%3C/svg%3E" },
-    { id: -102, name: "Apoiador 2", imageUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='160'%3E%3Crect width='100%25' height='100%25' rx='18' fill='%23b45309'/%3E%3Ctext x='200' y='92' text-anchor='middle' font-family='Georgia' font-weight='700' font-size='36' fill='%23fff7e7'%3EAPOIADOR 2%3C/text%3E%3C/svg%3E" },
-    { id: -103, name: "Apoiador 3", imageUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='160'%3E%3Crect width='100%25' height='100%25' rx='18' fill='%231f6f5b'/%3E%3Ctext x='200' y='92' text-anchor='middle' font-family='Georgia' font-weight='700' font-size='36' fill='%23fff7e7'%3EAPOIADOR 3%3C/text%3E%3C/svg%3E" },
+    { id: -101, name: "Apoiador 1", backgroundColor: "#fff7e7", imageUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='160'%3E%3Crect width='100%25' height='100%25' rx='18' fill='%23fff7e7'/%3E%3Ctext x='200' y='92' text-anchor='middle' font-family='Georgia' font-weight='700' font-size='36' fill='%239c321e'%3EAPOIADOR 1%3C/text%3E%3C/svg%3E" },
+    { id: -102, name: "Apoiador 2", backgroundColor: "#b45309", imageUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='160'%3E%3Crect width='100%25' height='100%25' rx='18' fill='%23b45309'/%3E%3Ctext x='200' y='92' text-anchor='middle' font-family='Georgia' font-weight='700' font-size='36' fill='%23fff7e7'%3EAPOIADOR 2%3C/text%3E%3C/svg%3E" },
+    { id: -103, name: "Apoiador 3", backgroundColor: "#1f6f5b", imageUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='160'%3E%3Crect width='100%25' height='100%25' rx='18' fill='%231f6f5b'/%3E%3Ctext x='200' y='92' text-anchor='middle' font-family='Georgia' font-weight='700' font-size='36' fill='%23fff7e7'%3EAPOIADOR 3%3C/text%3E%3C/svg%3E" },
   ] : [];
   const sponsors = visibleSponsors((previewSponsors.length ? previewSponsors : snapshot.data?.sponsors ?? []) as (Sponsor & { enabled?: boolean })[]);
   const goalAlert = (preview === "goal" ? { id: -1, unitsAtTrigger: 50, message: "Pesa o cachorro-quente no local de retirada.", goal: { name: "50 completos", targetUnits: 50 } } : snapshot.data?.goalAlert) as GoalAlert | null | undefined;
@@ -116,7 +116,7 @@ function SponsorCarousel({ sponsors }: { sponsors: Sponsor[] }) {
   }, [sponsors.length]);
   const visible = sponsors.slice(0, Math.min(3, sponsors.length)).map((_, offset) => sponsors[(activeIndex + offset) % sponsors.length]);
   if (!visible.length) return <div className="sponsor-viewport"><p className="empty-sponsors">Este espaço é dos parceiros da Barraca Agostina.</p></div>;
-  return <div className="sponsor-viewport"><div className="sponsor-three-grid">{visible.map((sponsor, index) => <article key={`${sponsor.id}-${activeIndex}`} className={`sponsor-tile sponsor-tile-${index}`}><img src={sponsor.imageUrl} alt={`Patrocinador ${sponsor.name}`} /><p>{sponsor.name}</p></article>)}</div>{sponsors.length > 3 ? <div className="sponsor-dots" aria-label={`Grupo ${activeIndex + 1} de ${sponsors.length}`}>{sponsors.map((sponsor, index) => <span key={sponsor.id} className={index === activeIndex ? "active" : ""} />)}</div> : null}</div>;
+  return <div className="sponsor-viewport"><div className="sponsor-three-grid" key={activeIndex}>{visible.map((sponsor, index) => <article key={`${sponsor.id}-${activeIndex}`} className={`sponsor-tile sponsor-tile-${index}`} style={{ backgroundColor: sponsor.backgroundColor || "#fffaf0" }}><img src={sponsor.imageUrl} alt={`Patrocinador ${sponsor.name}`} /><p>{sponsor.name}</p></article>)}</div>{sponsors.length > 3 ? <div className="sponsor-dots" aria-label={`Grupo ${activeIndex + 1} de ${sponsors.length}`}>{sponsors.map((sponsor, index) => <span key={sponsor.id} className={index === activeIndex ? "active" : ""} />)}</div> : null}</div>;
 }
 
 function CheckCircle2Icon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.4 9.2 17 19 7" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" /></svg>; }

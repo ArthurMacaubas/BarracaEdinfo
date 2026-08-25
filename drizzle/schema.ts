@@ -78,6 +78,7 @@ export const sponsors = mysqlTable("sponsors", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 120 }).notNull(),
   imageUrl: text("imageUrl").notNull(),
+  backgroundColor: varchar("backgroundColor", { length: 16 }).default("#fffaf0").notNull(),
   enabled: boolean("enabled").default(true).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

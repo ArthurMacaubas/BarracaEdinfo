@@ -51,6 +51,8 @@ try {
       const welcomeCard = document.querySelector(".welcome-card");
       const sponsorTiles = document.querySelectorAll(".sponsor-tile");
       const sponsorImageFits = Array.from(document.querySelectorAll(".sponsor-tile img")).every(image => getComputedStyle(image).objectFit === "contain");
+      const sponsorBackgrounds = Array.from(sponsorTiles).map(tile => getComputedStyle(tile).backgroundColor);
+      const sponsorGroupAnimation = getComputedStyle(document.querySelector(".sponsor-three-grid") ?? document.body).animationName;
       const toBounds = (element) => element ? (() => {
         const { top, right, bottom, left, width, height } = element.getBoundingClientRect();
         return { top, right, bottom, left, width, height };
@@ -77,6 +79,8 @@ try {
         welcomeCardBounds: toBounds(welcomeCard),
         sponsorTileCount: sponsorTiles.length,
         sponsorImageFits,
+        sponsorBackgrounds,
+        sponsorGroupAnimation,
       };
     });
     layout.sponsorBefore = sponsorBefore;
@@ -102,7 +106,9 @@ try {
     const sponsorRotates = name !== "promocao" || (Boolean(layout.sponsorBefore) && layout.sponsorBefore !== layout.sponsorAfter);
     const hasThreeSponsors = name !== "promocao" || layout.sponsorTileCount === 3;
     const sponsorsWithoutCrop = name !== "promocao" || layout.sponsorImageFits;
-    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !pixConfirmationIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates || !hasThreeSponsors || !sponsorsWithoutCrop) {
+    const sponsorColorsApplied = name !== "promocao" || layout.sponsorBackgrounds.every(color => color !== "rgba(0, 0, 0, 0)");
+    const sponsorTransitionApplied = name !== "promocao" || layout.sponsorGroupAnimation.includes("sponsor-group-in");
+    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !pixConfirmationIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates || !hasThreeSponsors || !sponsorsWithoutCrop || !sponsorColorsApplied || !sponsorTransitionApplied) {
       throw new Error(`Layout público excede o monitor em ${route}: ${JSON.stringify(layout)}`);
     }
     results.push({ state: name, route, screenshotPath, ...layout });
