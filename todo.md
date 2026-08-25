@@ -127,3 +127,21 @@
 - [x] Adicionar campo de valor PIX fixo opcional para o QR automático por pedido
 - [x] Validar em 1280x720 o cabeçalho e a ausência de overflow horizontal nas páginas principais
 - [x] Comprovar a troca temporizada do patrocinador em destaque no carrossel público
+- [x] Exibir contagem regressiva de 20 segundos na campanha PIX pública
+- [x] Mostrar na tela pública a confirmação manual do pagamento PIX quando registrada
+- [x] Exibir três patrocinadores simultaneamente com preenchimento proporcional das imagens
+- [x] Migrar as metas de vendas monetárias para unidades vendidas de produtos selecionados
+- [x] Permitir configurar múltiplas metas por unidade, prioridade de execução e fila
+- [x] Permitir selecionar os produtos contabilizados em cada meta
+- [x] Cobrir metas por unidade, fila e estados PIX com testes
+- [x] Validar as novas composições públicas em 1280x720
+- [x] Corrigir a etiqueta da meta por unidades para leitura horizontal no anúncio público
+- [x] Ocultar a configuração monetária legada para manter apenas metas por unidades na operação
+- [x] Restringir a ocultação da meta legada ao cartão financeiro sem esconder cadastro e hardware
+- [x] Corrigir as imagens de prévia dos patrocinadores usadas na validação da grade pública
+- [x] Estabilizar o prazo da prévia PIX para a contagem regressiva não reiniciar durante a validação
+- [x] Remover o fallback de alertas monetários do snapshot público e desativar sua avaliação após pedidos
+- [x] Substituir a ocultação visual do cartão financeiro legado por um seletor restrito ao cartão
+- [x] Validar que cadastro e hardware seguem visíveis sem o cartão monetário legado
+- [x] Remover do JSX o cartão financeiro legado de meta monetária
+- [x] Comprovar que o cartão financeiro legado não é renderizado no DOM

@@ -23,12 +23,18 @@ try {
     const layout = await page.evaluate(() => {
       const header = document.querySelector("header");
       const heading = document.querySelector("main h1");
+      const sectionByTitle = (title) => Array.from(document.querySelectorAll("h2")).find(element => element.textContent?.trim() === title) ?? null;
+      const productTitle = sectionByTitle("Produtos");
+      const hardwareTitle = sectionByTitle("Conexão do hardware");
+      const legacyGoal = document.querySelector("#sales-goal");
       const bounds = element => element ? (() => { const { top, right, bottom, left } = element.getBoundingClientRect(); return { top, right, bottom, left }; })() : null;
-      return { innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, headerBounds: bounds(header), headingBounds: bounds(heading) };
+      const isVisible = element => Boolean(element && (() => { const style = getComputedStyle(element); const rect = element.getBoundingClientRect(); return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0; })());
+      return { innerWidth: window.innerWidth, scrollWidth: document.documentElement.scrollWidth, bodyWidth: document.body.scrollWidth, headerBounds: bounds(header), headingBounds: bounds(heading), productTitleBounds: bounds(productTitle), hardwareTitleBounds: bounds(hardwareTitle), legacyGoalVisible: isVisible(legacyGoal) };
     });
     const fitsHorizontally = layout.scrollWidth <= layout.innerWidth + 1 && layout.bodyWidth <= layout.innerWidth + 1;
     const keyElementsVisible = layout.headerBounds && layout.headingBounds && layout.headerBounds.left >= 0 && layout.headerBounds.right <= layout.innerWidth && layout.headingBounds.left >= 0 && layout.headingBounds.right <= layout.innerWidth && layout.headingBounds.bottom <= 720;
-    if (!fitsHorizontally || !keyElementsVisible) throw new Error(`Página principal não cabe corretamente em ${item.route}: ${JSON.stringify(layout)}`);
+    const cadastroPreserved = item.name !== "cadastro" || (layout.productTitleBounds && layout.productTitleBounds.right > layout.productTitleBounds.left && layout.hardwareTitleBounds && layout.hardwareTitleBounds.right > layout.hardwareTitleBounds.left && !layout.legacyGoalVisible);
+    if (!fitsHorizontally || !keyElementsVisible || !cadastroPreserved) throw new Error(`Página principal não cabe corretamente em ${item.route}: ${JSON.stringify(layout)}`);
     results.push({ ...item, screenshotPath, ...layout });
     console.log(`OK ${item.route} ${JSON.stringify(layout)}`);
   }

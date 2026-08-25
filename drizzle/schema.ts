@@ -94,6 +94,34 @@ export const goalAlerts = mysqlTable("goal_alerts", {
   sirenSentAt: timestamp("sirenSentAt"),
 }, table => [unique("goal_alerts_goal_cycle_unique").on(table.goalAmount, table.cycleKey)]);
 
+export const unitGoals = mysqlTable("unit_goals", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  targetUnits: int("targetUnits").notNull(),
+  message: text("message").notNull(),
+  status: mysqlEnum("status", ["QUEUED", "ACTIVE", "COMPLETED", "PAUSED"]).default("QUEUED").notNull(),
+  priority: int("priority").default(0).notNull(),
+  activatedAt: timestamp("activatedAt"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const unitGoalProducts = mysqlTable("unit_goal_products", {
+  id: int("id").autoincrement().primaryKey(),
+  goalId: int("goalId").notNull().references(() => unitGoals.id, { onDelete: "cascade", onUpdate: "cascade" }),
+  productId: int("productId").notNull().references(() => products.id, { onDelete: "restrict", onUpdate: "cascade" }),
+}, table => [unique("unit_goal_products_goal_product_unique").on(table.goalId, table.productId)]);
+
+export const unitGoalAlerts = mysqlTable("unit_goal_alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  goalId: int("goalId").notNull().references(() => unitGoals.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  unitsAtTrigger: int("unitsAtTrigger").notNull(),
+  message: text("message").notNull(),
+  announcedAt: timestamp("announcedAt").defaultNow().notNull(),
+  sirenSentAt: timestamp("sirenSentAt"),
+}, table => [unique("unit_goal_alerts_goal_unique").on(table.goalId)]);
+
 export const publicPixCampaigns = mysqlTable("public_pix_campaigns", {
   id: int("id").autoincrement().primaryKey(),
   orderId: int("orderId").notNull().references(() => orders.id, { onDelete: "restrict", onUpdate: "cascade" }),
@@ -113,3 +141,5 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type OperationEvent = typeof operationEvents.$inferSelect;
 export type Sponsor = typeof sponsors.$inferSelect;
 export type GoalAlert = typeof goalAlerts.$inferSelect;
+export type UnitGoal = typeof unitGoals.$inferSelect;
+export type UnitGoalAlert = typeof unitGoalAlerts.$inferSelect;

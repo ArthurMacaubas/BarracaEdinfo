@@ -5,7 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
 import { hardwareController } from "./hardware";
-import { confirmPixPayment, createOrder, createOrUpdateProduct, getOperationalSnapshot, listAvailableProducts, listPendingPixPayments, PAYMENT_METHODS, recordEvent, resetSalesGoalCycle, saveSetting, saveSponsor } from "./operations";
+import { confirmPixPayment, createOrder, createOrUpdateProduct, getOperationalSnapshot, listAvailableProducts, listPendingPixPayments, PAYMENT_METHODS, recordEvent, resetSalesGoalCycle, saveSetting, saveSponsor, saveUnitGoal, setUnitGoalConcurrency, setUnitGoalStatus } from "./operations";
 
 export const appRouter = router({
   system: systemRouter,
@@ -22,6 +22,9 @@ export const appRouter = router({
     saveProduct: publicProcedure.input(z.object({ id: z.number().int().positive().optional(), name: z.string().min(1).max(120), description: z.string().max(500).optional(), category: z.string().min(1).max(60), price: z.number().min(0).max(9999), available: z.boolean(), sortOrder: z.number().int().min(0).max(999).optional() })).mutation(({ input }) => createOrUpdateProduct(input)),
     saveSetting: publicProcedure.input(z.object({ key: z.string().min(1).max(80), value: z.string().max(3_000) })).mutation(({ input }) => saveSetting(input.key, input.value)),
     resetSalesGoalCycle: publicProcedure.mutation(() => resetSalesGoalCycle()),
+    saveUnitGoal: publicProcedure.input(z.object({ id: z.number().int().positive().optional(), name: z.string().min(1).max(120), targetUnits: z.number().int().min(1).max(100_000), message: z.string().min(1).max(500), priority: z.number().int().min(0).max(999), productIds: z.array(z.number().int().positive()).min(1).max(100) })).mutation(({ input }) => saveUnitGoal(input)),
+    setUnitGoalStatus: publicProcedure.input(z.object({ goalId: z.number().int().positive(), status: z.enum(["QUEUED", "PAUSED"]) })).mutation(({ input }) => setUnitGoalStatus(input.goalId, input.status)),
+    setUnitGoalConcurrency: publicProcedure.input(z.object({ value: z.number().int().min(1).max(10) })).mutation(({ input }) => setUnitGoalConcurrency(input.value)),
     saveSponsor: publicProcedure.input(z.object({ id: z.number().int().positive().optional(), name: z.string().min(1).max(120), imageUrl: z.string().max(2_000).optional(), imageData: z.string().max(3_600_000).optional(), enabled: z.boolean(), sortOrder: z.number().int().min(0).max(999).optional() })).mutation(({ input }) => saveSponsor(input)),
   }),
   connectivity: router({

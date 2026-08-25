@@ -6,6 +6,7 @@ const baseUrl = process.env.PUBLIC_LAYOUT_URL ?? "http://localhost:3000";
 const states = [
   { name: "meta", route: "/chamadas?preview=goal&sponsors=1" },
   { name: "pix", route: "/chamadas?preview=pix&sponsors=1" },
+  { name: "pix-confirmado", route: "/chamadas?preview=pix&sponsors=1&pixConfirmed=1" },
   { name: "promocao", route: "/chamadas?preview=promotion&sponsors=1" },
   { name: "boas-vindas", route: "/chamadas?preview=promotion&sponsors=1&welcome=1" },
 ];
@@ -26,12 +27,12 @@ try {
     await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle" });
     const screenshotPath = join(evidenceDirectory, `tela-publica-${name}-1280x720.png`);
     await page.screenshot({ path: screenshotPath });
-    const sponsorBefore = name === "promocao" ? (await page.locator(".sponsor-feature-card p").textContent())?.trim() ?? "" : "";
+    const sponsorBefore = name === "promocao" ? (await page.locator(".sponsor-tile p").allTextContents()).join("|") : "";
     let sponsorAfter = "";
     if (name === "promocao") {
       await page.waitForTimeout(6_200);
-      sponsorAfter = (await page.locator(".sponsor-feature-card p").textContent())?.trim() ?? "";
-      await page.screenshot({ path: join(evidenceDirectory, "tela-publica-promocao-destaque-rotacionado-1280x720.png") });
+      sponsorAfter = (await page.locator(".sponsor-tile p").allTextContents()).join("|");
+      await page.screenshot({ path: join(evidenceDirectory, "tela-publica-promocao-rotacionada-1280x720.png") });
     }
     const layout = await page.evaluate(() => {
       const stage = document.querySelector(".public-stage");
@@ -42,10 +43,13 @@ try {
       const pixTitle = document.querySelector(".pix-copy h1");
       const pixCaption = document.querySelector(".pix-caption");
       const pixQr = document.querySelector(".pix-qr-frame");
+      const pixCountdown = document.querySelector(".pix-countdown");
+      const pixConfirmed = document.querySelector(".pix-payment-status.confirmed");
       const promotion = document.querySelector(".promotion-announcement");
       const reward = document.querySelector(".promotion-reward");
       const rewardCopy = reward?.querySelector("p");
       const welcomeCard = document.querySelector(".welcome-card");
+      const sponsorTiles = document.querySelectorAll(".sponsor-tile");
       const toBounds = (element) => element ? (() => {
         const { top, right, bottom, left, width, height } = element.getBoundingClientRect();
         return { top, right, bottom, left, width, height };
@@ -64,10 +68,13 @@ try {
         pixTitleBounds: toBounds(pixTitle),
         pixCaptionBounds: toBounds(pixCaption),
         pixQrBounds: toBounds(pixQr),
+        pixCountdownBounds: toBounds(pixCountdown),
+        pixConfirmed: Boolean(pixConfirmed),
         promotionBounds: toBounds(promotion),
         rewardBounds: toBounds(reward),
         rewardCopyBounds: toBounds(rewardCopy),
         welcomeCardBounds: toBounds(welcomeCard),
+        sponsorTileCount: sponsorTiles.length,
       };
     });
     layout.sponsorBefore = sponsorBefore;
@@ -81,7 +88,8 @@ try {
       bounds.left >= layout.canvasBounds.left
     );
     const goalIsVisible = !layout.goalTitleBounds || (isInsideCanvas(layout.goalTitleBounds) && isInsideCanvas(layout.goalValueBounds) && isInsideCanvas(layout.goalMessageBounds));
-    const pixIsVisible = !layout.pixTitleBounds || (isInsideCanvas(layout.pixTitleBounds) && isInsideCanvas(layout.pixCaptionBounds) && isInsideCanvas(layout.pixQrBounds));
+    const pixIsVisible = !layout.pixTitleBounds || (isInsideCanvas(layout.pixTitleBounds) && isInsideCanvas(layout.pixCaptionBounds) && isInsideCanvas(layout.pixQrBounds) && isInsideCanvas(layout.pixCountdownBounds));
+    const pixConfirmationIsVisible = name !== "pix-confirmado" || layout.pixConfirmed;
     const promotionIsVisible = !layout.promotionBounds || (
       isInsideCanvas(layout.promotionBounds) &&
       isInsideCanvas(layout.rewardBounds) &&
@@ -90,7 +98,8 @@ try {
     );
     const welcomeIsVisible = !layout.welcomeCardBounds || isInsideCanvas(layout.welcomeCardBounds);
     const sponsorRotates = name !== "promocao" || (Boolean(layout.sponsorBefore) && layout.sponsorBefore !== layout.sponsorAfter);
-    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates) {
+    const hasThreeSponsors = name !== "promocao" || layout.sponsorTileCount === 3;
+    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !pixConfirmationIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates || !hasThreeSponsors) {
       throw new Error(`Layout público excede o monitor em ${route}: ${JSON.stringify(layout)}`);
     }
     results.push({ state: name, route, screenshotPath, ...layout });

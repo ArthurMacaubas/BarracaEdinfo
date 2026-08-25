@@ -31,7 +31,7 @@ describe("recuperação de alertas na inicialização", () => {
 
   it("reencaminha uma sirene pendente após a inicialização", async () => {
     vi.useFakeTimers();
-    const pending = { id: 12, goalAmount: "100.00", salesAtTrigger: "105.00", message: "Meta batida", announcedAt: new Date(Date.now() - 5_000), sirenSentAt: null, cycleKey: "rodada-1" };
+    const pending = { id: 12, goalId: 7, unitsAtTrigger: 50, message: "Meta batida", announcedAt: new Date(Date.now() - 5_000), sirenSentAt: null };
     const results = [[pending], [pending]];
     const select = vi.fn(() => {
       const result = results.shift() ?? [];
@@ -46,7 +46,7 @@ describe("recuperação de alertas na inicialização", () => {
     await initializeOperationalRecovery();
     await vi.runAllTimersAsync();
 
-    expect(hardwareController.triggerAlert).toHaveBeenCalledWith("sales-goal-12", 900);
+    expect(hardwareController.triggerAlert).toHaveBeenCalledWith("unit-goal-12", 900);
     expect(where).toHaveBeenCalledOnce();
     vi.useRealTimers();
   });

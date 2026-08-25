@@ -14,7 +14,7 @@ describe("fluxo PIX persistido", () => {
     const campaignRows: unknown[] = [];
     const product = { id: 7, name: "Lanche", price: "15.00", available: true, category: "Lanches", description: null, sortOrder: 0, createdAt: new Date(), updatedAt: new Date() };
     const created = { id: 42, ticket: 1, requestKey: "pix-flow-request", status: "NEW", paymentMethod: "PIX", total: "15.00", note: null, createdAt: new Date(), updatedAt: new Date() };
-    const reads: Array<unknown[] | (() => unknown[])> = [[], [product], [{ lastTicket: 0 }], () => stored.pix ? [{ key: "pix_payload", value: stored.pix }] : [], () => stored.pix ? [{ key: "pix_payload", value: stored.pix }] : [], [], [created]];
+    const reads: Array<unknown[] | (() => unknown[])> = [[], [product], [{ lastTicket: 0 }], () => stored.pix ? [{ key: "pix_payload", value: stored.pix }] : [], () => stored.pix ? [{ key: "pix_payload", value: stored.pix }] : [], [created]];
     const select = vi.fn(() => {
       const next = reads.shift() ?? [];
       const result = typeof next === "function" ? next() : next;

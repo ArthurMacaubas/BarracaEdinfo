@@ -38,7 +38,7 @@ describe("createOrder", () => {
     const created = { id: 42, ticket: 8, requestKey: "pedido-8", status: "NEW", paymentMethod: "PIX", total: "25.00", note: null, createdAt: new Date(), updatedAt: new Date() };
     const product = { id: 7, name: "Lanche configurado", price: "12.50", available: true, category: "Lanches", description: null, sortOrder: 0, createdAt: new Date(), updatedAt: new Date() };
     const inserted: InsertCall[] = [];
-    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [], [], [], [created]], inserted) as never);
+    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [], [], [created]], inserted) as never);
 
     const first = await createOrder({ requestKey: "pedido-8", paymentMethod: "PIX", items: [{ productId: 7, quantity: 2 }] });
 
@@ -56,7 +56,7 @@ describe("createOrder", () => {
     const created = { id: 42, ticket: 8, requestKey: "pedido-pix", status: "NEW", paymentMethod: "PIX", total: "12.50", note: null, createdAt: new Date(), updatedAt: new Date() };
     const product = { id: 7, name: "Lanche configurado", price: "12.50", available: true, category: "Lanches", description: null, sortOrder: 0, createdAt: new Date(), updatedAt: new Date() };
     const inserted: InsertCall[] = [];
-    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [{ key: "pix_payload", value: "PIX-COPIA-COLA" }], [], [], [created]], inserted) as never);
+    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [{ key: "pix_payload", value: "PIX-COPIA-COLA" }], [], [created]], inserted) as never);
 
     await createOrder({ requestKey: "pedido-pix", paymentMethod: "PIX", items: [{ productId: 7, quantity: 1 }] });
 
@@ -69,7 +69,7 @@ describe("createOrder", () => {
     const product = { id: 7, name: "Lanche configurado", price: "12.50", available: true, category: "Lanches", description: null, sortOrder: 0, createdAt: new Date(), updatedAt: new Date() };
     const pixPayload = "00020101021226260014br.gov.bcb.pix0104test5204000053039865802BR5903ABC6003RIO62070503***6304ABCD";
     const inserted: InsertCall[] = [];
-    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [{ key: "pix_payload", value: pixPayload }, { key: "pix_amount_from_order", value: "true" }], [], [], [created]], inserted) as never);
+    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [{ key: "pix_payload", value: pixPayload }, { key: "pix_amount_from_order", value: "true" }], [], [created]], inserted) as never);
 
     await createOrder({ requestKey: "pedido-pix-valor", paymentMethod: "PIX", items: [{ productId: 7, quantity: 1 }] });
 
@@ -81,7 +81,7 @@ describe("createOrder", () => {
     const product = { id: 7, name: "Lanche configurado", price: "12.50", available: true, category: "Lanches", description: null, sortOrder: 0, createdAt: new Date(), updatedAt: new Date() };
     const pixPayload = "00020101021226260014br.gov.bcb.pix0104test5204000053039865802BR5903ABC6003RIO62070503***6304ABCD";
     const inserted: InsertCall[] = [];
-    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [{ key: "pix_payload", value: pixPayload }, { key: "pix_amount_from_order", value: "false" }, { key: "pix_fixed_amount", value: "20.00" }], [], [], [created]], inserted) as never);
+    vi.mocked(getDb).mockResolvedValue(createFakeDb([[], [product], [{ lastTicket: 7 }], [{ key: "pix_payload", value: pixPayload }, { key: "pix_amount_from_order", value: "false" }, { key: "pix_fixed_amount", value: "20.00" }], [], [created]], inserted) as never);
 
     await createOrder({ requestKey: "pedido-pix-fixo", paymentMethod: "PIX", items: [{ productId: 7, quantity: 1 }] });
 
