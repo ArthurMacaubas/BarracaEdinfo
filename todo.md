@@ -175,3 +175,5 @@
 - [x] Validar o cancelamento, a confirmação e a atualização da lista após excluir
 - [x] Validar a confirmação da exclusão e a atualização visual da lista de patrocinadores
 - [x] Validar a limpeza do editor ao excluir o patrocinador que está em edição
+- [x] Documentar a conexão do Arduino e o firmware compatível com o controlador atual
+- [x] Adaptar o firmware e o guia para fita LED e sirene acionadas por dois relés
