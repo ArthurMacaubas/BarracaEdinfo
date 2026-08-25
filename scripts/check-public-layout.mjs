@@ -50,6 +50,7 @@ try {
       const rewardCopy = reward?.querySelector("p");
       const welcomeCard = document.querySelector(".welcome-card");
       const sponsorTiles = document.querySelectorAll(".sponsor-tile");
+      const sponsorImageFits = Array.from(document.querySelectorAll(".sponsor-tile img")).every(image => getComputedStyle(image).objectFit === "contain");
       const toBounds = (element) => element ? (() => {
         const { top, right, bottom, left, width, height } = element.getBoundingClientRect();
         return { top, right, bottom, left, width, height };
@@ -75,6 +76,7 @@ try {
         rewardCopyBounds: toBounds(rewardCopy),
         welcomeCardBounds: toBounds(welcomeCard),
         sponsorTileCount: sponsorTiles.length,
+        sponsorImageFits,
       };
     });
     layout.sponsorBefore = sponsorBefore;
@@ -99,7 +101,8 @@ try {
     const welcomeIsVisible = !layout.welcomeCardBounds || isInsideCanvas(layout.welcomeCardBounds);
     const sponsorRotates = name !== "promocao" || (Boolean(layout.sponsorBefore) && layout.sponsorBefore !== layout.sponsorAfter);
     const hasThreeSponsors = name !== "promocao" || layout.sponsorTileCount === 3;
-    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !pixConfirmationIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates || !hasThreeSponsors) {
+    const sponsorsWithoutCrop = name !== "promocao" || layout.sponsorImageFits;
+    if (exceedsViewport || allowsVerticalScroll || !goalIsVisible || !pixIsVisible || !pixConfirmationIsVisible || !promotionIsVisible || !welcomeIsVisible || !sponsorRotates || !hasThreeSponsors || !sponsorsWithoutCrop) {
       throw new Error(`Layout público excede o monitor em ${route}: ${JSON.stringify(layout)}`);
     }
     results.push({ state: name, route, screenshotPath, ...layout });

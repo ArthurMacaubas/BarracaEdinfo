@@ -145,3 +145,5 @@
 - [x] Validar que cadastro e hardware seguem visíveis sem o cartão monetário legado
 - [x] Remover do JSX o cartão financeiro legado de meta monetária
 - [x] Comprovar que o cartão financeiro legado não é renderizado no DOM
+- [x] Exibir imagens de patrocinadores completas, sem recorte, na grade pública de três marcas
+- [x] Validar o novo enquadramento dos patrocinadores em 1280x720
