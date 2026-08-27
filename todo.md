@@ -179,3 +179,6 @@
 - [x] Adaptar o firmware e o guia para fita LED e sirene acionadas por dois relés
 - [x] Criar prompt de design para uma IA redesenhar a interface da Barraca Agostina
 - [x] Publicar o código atual no repositório GitHub arthurmacaubas/barracaEdinfo
+- [x] Documentar como executar a Barraca Agostina localmente
+- [x] Detalhar o processo de instalação local com MariaDB e preparação de hardware
+- [x] Criar e versionar um guia completo de execução local
