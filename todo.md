@@ -190,3 +190,5 @@
 - [x] Validar os estados online/offline e os controles do painel de relés
 - [x] Cobrir em interface os estados online e offline dos relés e seus controles manuais
 - [x] Criar e versionar um guia completo de execução local
+- [x] Sincronizar a versão mais recente com o repositório GitHub
+- [ ] Enviar a sincronização final e confirmar o SHA remoto no GitHub
