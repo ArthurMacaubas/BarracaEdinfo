@@ -34,6 +34,8 @@ export const appRouter = router({
     connectHardware: publicProcedure.mutation(async () => { await hardwareController.connect(); return hardwareController.getSnapshot(); }),
     disconnectHardware: publicProcedure.mutation(async () => { await hardwareController.disconnect(); return hardwareController.getSnapshot(); }),
     testHardware: publicProcedure.mutation(async () => { const accepted = hardwareController.triggerAlert(`manual-test-${Date.now()}`, 700); await recordEvent("HARDWARE_TEST_REQUESTED", "HARDWARE", undefined, accepted); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
+    setLedRelay: publicProcedure.input(z.object({ enabled: z.boolean() })).mutation(async ({ input }) => { const accepted = input.enabled ? hardwareController.turnLedOn(`manual-led-on-${Date.now()}`) : hardwareController.turnLedOff(`manual-led-off-${Date.now()}`); await recordEvent("LED_RELAY_REQUESTED", "HARDWARE", undefined, { enabled: input.enabled, ...accepted }); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
+    setSirenRelay: publicProcedure.input(z.object({ enabled: z.boolean(), durationMs: z.number().int().min(300).max(3_000).optional() })).mutation(async ({ input }) => { const accepted = input.enabled ? hardwareController.turnSirenOn(`manual-siren-on-${Date.now()}`, input.durationMs ?? 1_000) : hardwareController.turnSirenOff(`manual-siren-off-${Date.now()}`); await recordEvent("SIREN_RELAY_REQUESTED", "HARDWARE", undefined, { enabled: input.enabled, durationMs: input.durationMs, ...accepted }); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
   }),
 });
 

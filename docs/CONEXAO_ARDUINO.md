@@ -34,7 +34,10 @@ ACK|teste-001
 | --- | --- |
 | `chave|LED_ON|1000` | Aciona o relé da fita LED por até 1 segundo. |
 | `chave|LED_OFF|0` | Desliga o relé da fita LED. |
+| `chave|SIREN_ON|1000` | Aciona somente o relé da sirene por até 1 segundo. |
+| `chave|SIREN_OFF|0` | Desliga somente o relé da sirene. |
 | `chave|ALERT|900` | Aciona os dois relés — fita LED e sirene — por 900 ms. |
+| `chave|STATUS|0` | Retorna o estado físico atual como `STATE|LED|ON/OFF` e `STATE|SIREN|ON/OFF`. |
 | `chave|TEST|700` | Comando opcional aceito pelo firmware para testes manuais; não é emitido pelo site atual. |
 
 ## O que falta integrar ao site
@@ -42,6 +45,15 @@ ACK|teste-001
 No backend, é preciso adicionar um `HardwareAdapter` serial que abra a porta do Arduino — normalmente `/dev/ttyACM0` ou `/dev/ttyUSB0` no Raspberry Pi/Linux e `COM3` no Windows —, envie as linhas acima e espere `ACK|chave` antes de marcar o comando como confirmado.
 
 Depois, a aplicação deve chamar `hardwareController.configure(adaptadorSerial)` na inicialização. Com isso, o botão **Testar sirene** em Cadastro e Hardware — que atualmente dispara `ALERT` — e os alertas de meta passam a mandar `ALERT` ao Arduino.
+
+Nesta versão, configure a ponte serial no arquivo `.env` da instalação local:
+
+```dotenv
+HARDWARE_SERIAL_PORT="/dev/ttyACM0"
+HARDWARE_SERIAL_BAUD_RATE="115200"
+```
+
+No Windows, a porta costuma ter o formato `COM3`. Ao iniciar o servidor, o painel consulta o Arduino e mostra os estados retornados pela placa. Se a porta não estiver configurada ou o Arduino não confirmar os comandos, os controles continuam bloqueados e o painel mostra o controlador como offline.
 
 ## Limitação registrada
 

@@ -7,6 +7,7 @@ import UnitGoalControls from "@/components/UnitGoalControls";
 import OperationSetup from "@/components/OperationSetup";
 import PixQuickAccess from "@/components/PixQuickAccess";
 import PixPaymentConfirmation from "@/components/PixPaymentConfirmation";
+import RelayControls from "@/components/RelayControls";
 import { readActiveCart, readActivePayment } from "@/lib/orderDraft";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,7 @@ import { toast } from "sonner";
 import { useLocation } from "wouter";
 import "./main-screen.css";
 
-const Configuration = OperationSetup;
+function Configuration(props: Parameters<typeof OperationSetup>[0]) { return <><OperationSetup {...props} /><RelayControls /></>; }
 
 type Status = "NEW" | "PREPARING" | "READY" | "DELIVERED" | "CANCELLED";
 type Product = { id: number; name: string; description: string | null; category: string; price: string; available: boolean; sortOrder: number };

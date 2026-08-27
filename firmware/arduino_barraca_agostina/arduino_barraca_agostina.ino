@@ -4,7 +4,10 @@
  * Protocolo serial (115200 bps, fim de linha \n):
  *   chave|LED_ON|duracaoEmMs
  *   chave|LED_OFF|0
+ *   chave|SIREN_ON|duracaoEmMs
+ *   chave|SIREN_OFF|0
  *   chave|ALERT|duracaoEmMs
+ *   chave|STATUS|0
  *   chave|TEST|duracaoEmMs
  *
  * Resposta de sucesso: ACK|chave
@@ -31,6 +34,17 @@ bool timeReached(unsigned long deadline) {
 void setRelay(byte pin, bool enabled) {
   const bool outputHigh = RELAY_ACTIVE_LOW ? !enabled : enabled;
   digitalWrite(pin, outputHigh ? HIGH : LOW);
+}
+
+bool isRelayEnabled(byte pin) {
+  return RELAY_ACTIVE_LOW ? digitalRead(pin) == LOW : digitalRead(pin) == HIGH;
+}
+
+void reportRelayState(const char* relay, byte pin) {
+  Serial.print(F("STATE|"));
+  Serial.print(relay);
+  Serial.print('|');
+  Serial.println(isRelayEnabled(pin) ? F("ON") : F("OFF"));
 }
 
 void updateOutputs() {
@@ -73,9 +87,9 @@ void processCommand(char* raw) {
   }
 
   if (strcmp(type, "LED_ON") == 0) {
-    const unsigned long duration = readDuration(durationValue, DEFAULT_ALERT_MS);
+    const unsigned long duration = durationValue == nullptr ? 0 : strtoul(durationValue, nullptr, 10);
     setRelay(LED_RELAY_PIN, true);
-    ledRelayUntil = millis() + duration;
+    ledRelayUntil = duration > 0 ? millis() + min(duration, MAX_DURATION_MS) : 0;
     acknowledge(key);
     return;
   }
@@ -83,6 +97,28 @@ void processCommand(char* raw) {
   if (strcmp(type, "LED_OFF") == 0) {
     setRelay(LED_RELAY_PIN, false);
     ledRelayUntil = 0;
+    acknowledge(key);
+    return;
+  }
+
+  if (strcmp(type, "SIREN_ON") == 0) {
+    const unsigned long duration = readDuration(durationValue, DEFAULT_ALERT_MS);
+    setRelay(SIREN_RELAY_PIN, true);
+    sirenRelayUntil = millis() + duration;
+    acknowledge(key);
+    return;
+  }
+
+  if (strcmp(type, "SIREN_OFF") == 0) {
+    setRelay(SIREN_RELAY_PIN, false);
+    sirenRelayUntil = 0;
+    acknowledge(key);
+    return;
+  }
+
+  if (strcmp(type, "STATUS") == 0) {
+    reportRelayState("LED", LED_RELAY_PIN);
+    reportRelayState("SIREN", SIREN_RELAY_PIN);
     acknowledge(key);
     return;
   }

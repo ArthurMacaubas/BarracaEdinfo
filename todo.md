@@ -181,4 +181,12 @@
 - [x] Publicar o código atual no repositório GitHub arthurmacaubas/barracaEdinfo
 - [x] Documentar como executar a Barraca Agostina localmente
 - [x] Detalhar o processo de instalação local com MariaDB e preparação de hardware
+- [x] Exibir no site o estado da fita LED e da sirene acionadas por relés
+- [x] Permitir acionar e desligar com segurança o relé da fita LED
+- [x] Permitir acionar manualmente o relé da sirene por duração limitada
+- [x] Cobrir e validar o painel de controle dos relés
+- [x] Implementar a ponte serial local com confirmação do Arduino para os relés
+- [x] Configurar a ativação opcional da porta serial no backend local
+- [x] Validar os estados online/offline e os controles do painel de relés
+- [x] Cobrir em interface os estados online e offline dos relés e seus controles manuais
 - [x] Criar e versionar um guia completo de execução local

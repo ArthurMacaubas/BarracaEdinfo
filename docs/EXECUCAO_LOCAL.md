@@ -60,6 +60,8 @@ corepack enable
 pnpm install
 ```
 
+Se for conectar o Arduino pela porta USB, permita a compilação do driver serial nativo quando o `pnpm` solicitar. No `pnpm approve-builds`, selecione `@serialport/bindings-cpp`; em seguida, execute `pnpm rebuild @serialport/bindings-cpp`.
+
 ## 5. Criar o arquivo `.env`
 
 Na raiz do projeto, crie o arquivo `.env` com valores locais. **Não envie esse arquivo ao GitHub.**
@@ -69,6 +71,8 @@ NODE_ENV=development
 PORT=3000
 DATABASE_URL="mysql://barraca:UMA_SENHA_FORTE@127.0.0.1:3306/barraca_agostina"
 JWT_SECRET="troque-por-uma-chave-longa-e-aleatoria"
+HARDWARE_SERIAL_PORT="/dev/ttyACM0"
+HARDWARE_SERIAL_BAUD_RATE="115200"
 
 # Necessários somente se você for usar login OAuth da plataforma Manus localmente.
 VITE_APP_ID=""
@@ -125,7 +129,7 @@ firmware/arduino_barraca_agostina/arduino_barraca_agostina.ino
 docs/CONEXAO_ARDUINO.md
 ```
 
-Nesta versão, a fila de alertas existe, mas a ponte serial/rede ainda precisa ser implementada no backend para o botão **Testar sirene** acionar fisicamente o Arduino. O site hospedado na nuvem não tem acesso direto à porta USB local.
+Configure `HARDWARE_SERIAL_PORT` para ativar a ponte serial local. No Linux, confirme a porta com `ls /dev/ttyACM* /dev/ttyUSB*`; no Windows, use a porta indicada pela Arduino IDE, como `COM3`. O site hospedado na nuvem não tem acesso direto à porta USB local.
 
 ## Problemas comuns
 
