@@ -205,3 +205,10 @@
 - [x] Permitir imprimir, baixar e compartilhar comprovantes pelo WhatsApp
 - [x] Exibir toast de sucesso após imprimir ou baixar o comprovante
 - [x] Validar o histórico de pedidos e as ações de comprovante
+- [x] Simplificar a instalação local e o diagnóstico inicial do banco e do Arduino
+- [x] Adicionar filtros por pedido, período, pagamento e status no histórico
+- [x] Gerar comprovantes de pedido em PDF para download
+- [x] Tornar a ponte serial local do Arduino mais diagnóstica e confiável
+- [x] Criar relatório de fechamento com totais por produto e forma de pagamento
+- [x] Permitir exportar o relatório de fechamento em CSV e PDF
+- [x] Validar as melhorias de operação, histórico, PDF e hardware

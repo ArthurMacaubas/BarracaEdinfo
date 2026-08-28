@@ -3,6 +3,12 @@ import { hardwareController, type HardwareAdapter, type HardwareCommand, type Re
 type PendingCommand = { resolve: () => void; reject: (error: Error) => void; timeout: ReturnType<typeof setTimeout> };
 type SerialPortInstance = import("serialport").SerialPort;
 const relayByWireName: Record<string, RelayName | undefined> = { LED: "led", SIREN: "siren" };
+export type SerialPortCandidate = { path: string; manufacturer?: string; vendorId?: string; productId?: string };
+
+export function chooseArduinoSerialPort(ports: SerialPortCandidate[]) {
+  return ports.find(port => /arduino|ch340|cp210|ftdi/i.test(`${port.manufacturer ?? ""} ${port.vendorId ?? ""} ${port.productId ?? ""}`))?.path
+    ?? ports.find(port => /\/dev\/tty(?:ACM|USB)\d+|COM\d+/i.test(port.path))?.path;
+}
 
 export function parseRelayStateLine(line: string): { relay: RelayName; state: RelayState } | undefined {
   const [kind, wireName, wireState] = line.trim().split("|");
@@ -66,10 +72,17 @@ export class SerialHardwareAdapter implements HardwareAdapter {
   private rejectAll(error: Error) { for (const key of Array.from(this.pending.keys())) this.settle(key, error); }
 }
 
-export function configureLocalSerialHardware() {
-  const path = process.env.HARDWARE_SERIAL_PORT?.trim();
-  if (!path) return false;
+export async function configureLocalSerialHardware() {
+  const requestedPath = process.env.HARDWARE_SERIAL_PORT?.trim();
+  if (!requestedPath) return { configured: false, reason: "Defina HARDWARE_SERIAL_PORT=auto ou informe a porta do Arduino." };
+  let path = requestedPath;
+  if (requestedPath.toLowerCase() === "auto") {
+    const { SerialPort } = await import("serialport");
+    const discoveredPath = chooseArduinoSerialPort(await SerialPort.list());
+    if (!discoveredPath) return { configured: false, reason: "Nenhuma porta Arduino encontrada. Conecte o cabo USB de dados e tente novamente." };
+    path = discoveredPath;
+  }
   const baudRate = Number(process.env.HARDWARE_SERIAL_BAUD_RATE ?? "115200");
   hardwareController.configure(new SerialHardwareAdapter({ path, baudRate: Number.isFinite(baudRate) && baudRate > 0 ? baudRate : 115200 }));
-  return true;
+  return { configured: true, path, baudRate: Number.isFinite(baudRate) && baudRate > 0 ? baudRate : 115200 };
 }

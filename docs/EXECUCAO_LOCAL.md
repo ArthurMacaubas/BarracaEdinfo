@@ -71,7 +71,7 @@ NODE_ENV=development
 PORT=3000
 DATABASE_URL="mysql://barraca:UMA_SENHA_FORTE@127.0.0.1:3306/barraca_agostina"
 JWT_SECRET="troque-por-uma-chave-longa-e-aleatoria"
-HARDWARE_SERIAL_PORT="/dev/ttyACM0"
+HARDWARE_SERIAL_PORT="auto"
 HARDWARE_SERIAL_BAUD_RATE="115200"
 
 # Necessários somente se você for usar login OAuth da plataforma Manus localmente.
@@ -129,7 +129,7 @@ firmware/arduino_barraca_agostina/arduino_barraca_agostina.ino
 docs/CONEXAO_ARDUINO.md
 ```
 
-Configure `HARDWARE_SERIAL_PORT` para ativar a ponte serial local. No Linux, confirme a porta com `ls /dev/ttyACM* /dev/ttyUSB*`; no Windows, use a porta indicada pela Arduino IDE, como `COM3`. O site hospedado na nuvem não tem acesso direto à porta USB local.
+Use `HARDWARE_SERIAL_PORT="auto"` para o sistema localizar automaticamente uma porta Arduino/USB. Caso existam vários dispositivos seriais, informe a porta específica: no Linux, use `ls /dev/ttyACM* /dev/ttyUSB*`; no Windows, use a porta indicada pela Arduino IDE, como `COM3`. O site hospedado na nuvem não tem acesso direto à porta USB local.
 
 ## Problemas comuns
 

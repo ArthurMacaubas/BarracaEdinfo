@@ -31,7 +31,8 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
-  if (configureLocalSerialHardware()) console.log("[Hardware] Ponte serial local configurada.");
+  const localHardware = await configureLocalSerialHardware();
+  console.log(localHardware.configured ? `[Hardware] Ponte serial configurada em ${localHardware.path} (${localHardware.baudRate} bps).` : `[Hardware] ${localHardware.reason}`);
   await initializeOperationalRecovery().catch(error => console.error("[Goals] Failed to recover pending alerts", error));
   const app = express();
   const server = createServer(app);

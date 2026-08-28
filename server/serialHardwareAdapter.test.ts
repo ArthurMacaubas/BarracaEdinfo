@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRelayStateLine, SerialHardwareAdapter } from "./serialHardwareAdapter";
+import { chooseArduinoSerialPort, parseRelayStateLine, SerialHardwareAdapter } from "./serialHardwareAdapter";
 
 describe("parseRelayStateLine", () => {
   it("carrega o driver serial usado pela ponte local", async () => {
@@ -21,5 +21,10 @@ describe("parseRelayStateLine", () => {
   it("descarta mensagens que não representam estado de relé", () => {
     expect(parseRelayStateLine("ACK|comando-1")).toBeUndefined();
     expect(parseRelayStateLine("STATE|FAN|ON")).toBeUndefined();
+  });
+
+  it("encontra automaticamente uma porta Arduino compatível", () => {
+    expect(chooseArduinoSerialPort([{ path: "/dev/ttyS0" }, { path: "/dev/ttyACM0", manufacturer: "Arduino LLC" }])).toBe("/dev/ttyACM0");
+    expect(chooseArduinoSerialPort([{ path: "COM4" }])).toBe("COM4");
   });
 });

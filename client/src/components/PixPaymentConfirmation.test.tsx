@@ -87,7 +87,7 @@ describe("PixPaymentConfirmation", () => {
     expect(mocks.invalidate).toHaveBeenCalledTimes(2);
     expect(screen.getByText("Pagamento confirmado")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Imprimir" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Baixar" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Baixar PDF" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "WhatsApp" })).toBeTruthy();
   });
 
@@ -115,7 +115,7 @@ describe("PixPaymentConfirmation", () => {
     openPendingPixModal();
     confirmOrder();
     fireEvent.click(screen.getByRole("button", { name: "Imprimir" }));
-    fireEvent.click(screen.getByRole("button", { name: "Baixar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Baixar JSON" }));
     fireEvent.click(screen.getByRole("button", { name: "WhatsApp" }));
 
     expect(open).toHaveBeenCalled();

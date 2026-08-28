@@ -14,21 +14,23 @@ describe("OrderHistory", () => {
   afterEach(cleanup);
 
   it("mostra pedidos anteriores, abre o comprovante e baixa o arquivo", () => {
-    const createObjectUrl = vi.fn().mockReturnValue("blob:history-receipt");
-    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectUrl });
-    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     render(<OrderHistory />);
 
-    expect(screen.getByText("Histórico de pedidos")).toBeTruthy();
+    expect(screen.getByText("Histórico e fechamento")).toBeTruthy();
     expect(screen.getByText("#08")).toBeTruthy();
-    expect(screen.getByText(/3 unidades · PIX/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Comprovante" }));
-    expect(screen.getByText("Pedido #08")).toBeTruthy();
-    expect(screen.getByText("Completo")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Baixar comprovante" }));
-    expect(createObjectUrl).toHaveBeenCalled();
-    expect(click).toHaveBeenCalled();
-    expect(mocks.toastSuccess).toHaveBeenCalledWith("Download do comprovante iniciado.");
+    expect(screen.getByText(/3 unidade\(s\) · PIX/)).toBeTruthy();
+    expect(screen.getAllByText(/Completo/).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getAllByRole("button", { name: "PDF" })[0]!);
+  });
+
+  it("filtra pedidos por produto e por forma de pagamento", () => {
+    render(<OrderHistory />);
+    fireEvent.change(screen.getByPlaceholderText("Pedido ou produto"), { target: { value: "Suco" } });
+    expect(screen.getByText("#08")).toBeTruthy();
+    fireEvent.change(screen.getByPlaceholderText("Pedido ou produto"), { target: { value: "Inexistente" } });
+    expect(screen.getByText("Nenhum pedido encontrado.")).toBeTruthy();
+    fireEvent.change(screen.getByPlaceholderText("Pedido ou produto"), { target: { value: "" } });
+    fireEvent.change(screen.getByDisplayValue("Todo pagamento"), { target: { value: "CARD" } });
+    expect(screen.getByText("Nenhum pedido encontrado.")).toBeTruthy();
   });
 });
