@@ -1,51 +1,101 @@
 # Operação local — Barraca Agostina IFRO
 
-## Objetivo de implantação
+## Objetivo
 
-Durante a Festa Agostina, o **Raspberry Pi** deve hospedar a aplicação e o banco de dados na rede local da barraca. Os computadores ligados aos monitores acessam o sistema pelo navegador, usando o endereço IP local do Raspberry Pi. Dessa forma, o fluxo de caixa, produção e chamadas não depende da conexão com a internet.
+Durante o evento, um computador com Node.js hospeda a aplicação e o banco SQLite na rede local da barraca. O caixa, o dashboard e o segundo monitor acessam o endereço IP desse computador pelo navegador. O Arduino Uno fica conectado por USB ao mesmo computador que executa o backend.
 
-| Elemento | Responsabilidade | Dependência de internet |
+| Elemento | Responsabilidade | Internet necessária |
 | --- | --- | --- |
-| Raspberry Pi | Aplicação web, API, banco de dados e ponte de hardware | Não |
-| Monitor 1 | Caixa, produção, dashboard e configurações | Apenas rede local |
-| Monitor 2 | Rota pública `/chamadas` em tela cheia | Apenas rede local |
-| Arduino | LEDs e sirene, conectado à ponte física | Não |
+| Computador local | Aplicação web, API, SQLite e ponte serial | Não, para a operação básica |
+| Tela do caixa | Cadastro, hardware e pedidos | Apenas rede local |
+| Segundo monitor | Tela pública `/chamadas` ou rota pública configurada | Apenas rede local |
+| Arduino Uno | Relé da fita LED e relé da sirene | Não |
 
-> A aplicação não deve bloquear pedidos caso o Arduino esteja desconectado. O estado físico é monitorado separadamente e os comandos são tratados por uma fila idempotente.
+A aplicação não exige login e não deve ser exposta diretamente à Internet. Use uma rede local confiável e mantenha o firewall ativo.
 
-## Topologia sugerida
+## Topologia
 
 ```text
-Raspberry Pi (IP local fixo)
-├── Aplicação web + API
-├── Banco de dados local
-└── Adaptador de hardware
-    └── Arduino → LEDs e sirene
+Computador local (IP da rede)
+├── Aplicação web + API Node.js
+├── Banco data/barraca-agostina.sqlite
+├── Ponte serial USB
+└── Arduino Uno
+    ├── D8 → relé da fita LED
+    └── D9 → relé da sirene
 
-Computador do caixa       → http://IP-DO-PI:PORTA/
-Monitor público/produção  → http://IP-DO-PI:PORTA/chamadas
+Computador do caixa  → http://IP-DO-COMPUTADOR:3000/
+Segundo monitor     → http://IP-DO-COMPUTADOR:3000/chamadas
 ```
 
-## Preparação antes do evento
+## Instalação
 
-O Raspberry Pi deve receber um IP estável na rede da barraca. Instale a versão LTS atual do Node.js e um banco MySQL ou MariaDB compatível. Copie o projeto para o dispositivo, instale as dependências e configure `DATABASE_URL` para apontar para o banco local. Depois aplique as migrations existentes no diretório `drizzle/`.
+Instale Node.js 22 LTS, Git e a Arduino IDE no computador que ficará junto ao Arduino Uno. No diretório do projeto, instale as dependências com npm:
 
-O processo da aplicação deve ser iniciado em modo de produção, usando a porta definida pelo ambiente. O acesso dos operadores deverá usar o endereço local do Raspberry Pi, nunca uma URL externa. Para a tela pública, abra diretamente `/chamadas` no segundo monitor e ative o modo de tela cheia do navegador.
+```bash
+npm install
+```
 
-## Ponte com Arduino
+Crie o `.env` na raiz:
 
-A implementação atual oferece um `HardwareController` desacoplado. Para operar o hardware real, crie um adaptador que implemente `HardwareAdapter` e converta os comandos `LED_ON`, `LED_OFF` e `ALERT` para o protocolo serial ou de rede escolhido.
+```dotenv
+NODE_ENV=development
+PORT=3000
+DATABASE_FILE="./data/barraca-agostina.sqlite"
+HARDWARE_SERIAL_PORT="auto"
+HARDWARE_SERIAL_BAUD_RATE="115200"
+```
 
-| Garantia da camada | Comportamento |
-| --- | --- |
-| Idempotência | A mesma chave de comando é ignorada se estiver na fila, em andamento ou concluída. |
-| Timeout | Um comando sem resposta é marcado como falho sem interromper os pedidos. |
-| Reconexão | Falhas disparam novas tentativas progressivas de conexão. |
-| Diagnóstico | Logs e estados ficam visíveis em Configurações. |
-| Persistência | Mudanças de estado e comandos são registrados para auditoria. |
+Confira o banco e a configuração antes de abrir o sistema:
 
-## Checklist operacional
+```bash
+npm run db:verify
+npm run check
+npm test
+```
 
-Antes de abrir a barraca, valide o banco local, cadastre os produtos e os preços vigentes, teste um pedido completo, abra a tela de chamadas no segundo monitor e confira o indicador de rede. Caso o Arduino esteja instalado, faça um teste de alerta e confirme que uma falha física não interrompe caixa ou produção.
+Para desenvolvimento, execute:
 
-Após o evento, exporte ou faça backup do banco local antes de desligar o Raspberry Pi.
+```bash
+npm run dev
+```
+
+Para produção local:
+
+```bash
+npm run build
+NODE_ENV=production npm start
+```
+
+Abra `http://localhost:3000` no computador do caixa. Para os demais dispositivos, substitua `localhost` pelo endereço IP local do computador, por exemplo `http://192.168.0.50:3000`.
+
+## Banco SQLite e backup
+
+O banco é criado automaticamente em `data/barraca-agostina.sqlite`. Não compartilhe esse arquivo por pasta de rede: os clientes devem acessar somente a API Node. Para fazer backup, pare o servidor e copie o arquivo para um local seguro:
+
+```bash
+mkdir -p backups
+cp data/barraca-agostina.sqlite "backups/barraca-$(date +%Y%m%d-%H%M%S).sqlite"
+```
+
+Para restaurar, pare o servidor, preserve o arquivo atual e copie uma cópia válida para o caminho definido em `DATABASE_FILE`. Em seguida, execute `npm run db:verify`.
+
+## Arduino Uno
+
+Abra o sketch em `firmware/arduino_barraca_agostina/arduino_barraca_agostina.ino`, selecione a placa **Arduino Uno**, escolha a porta USB, grave o firmware e use 115200 bps no Monitor Serial. Conecte `IN1` do relé da fita LED ao D8 e `IN2` do relé da sirene ao D9. Não alimente cargas de potência pelo Arduino e não conecte tensão de rede diretamente à placa.
+
+No Linux, instale `udev` e dê permissão serial ao usuário:
+
+```bash
+sudo apt update
+sudo apt install -y udev
+sudo usermod -aG dialout "$USER"
+```
+
+Saia e entre novamente na sessão. Se a descoberta automática não encontrar o Uno, informe a porta diretamente, como `/dev/ttyACM0`, `/dev/ttyUSB0`, `/dev/cu.usbmodem...` ou `COM3` no Windows.
+
+## Rotina de abertura
+
+Antes do evento, ligue o computador, conecte o Arduino Uno, confirme o `READY|barraca-agostina` no Monitor Serial, feche o Monitor Serial, inicie a aplicação com `npm run dev`, cadastre os produtos e teste os relés sem carga ligada. Depois faça um pedido de teste e confirme a atualização do dashboard.
+
+Se o Arduino estiver desligado, os pedidos continuam funcionando; apenas os comandos físicos ficam offline. A ponte serial deve permanecer no mesmo computador do backend. A hospedagem na nuvem não consegue acessar o USB local.

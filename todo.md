@@ -238,3 +238,8 @@
 - [x] Remover redirecionamentos e dependências de autenticação obrigatória
 - [x] Atualizar `.env`, documentação e testes para o modo sem login
 - [x] Validar e publicar a operação local sem login
+- [x] Adaptar firmware e documentação elétrica para Arduino Uno
+- [x] Remover referências ao Raspberry Pi 4 da execução local e do hardware
+- [x] Substituir comandos e instruções de pnpm por npm
+- [x] Validar a instalação, testes e operação com Arduino Uno usando npm
+- [ ] Publicar e sincronizar a adaptação de Arduino Uno e npm

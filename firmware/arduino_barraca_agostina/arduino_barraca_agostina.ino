@@ -1,4 +1,5 @@
 /*
+ * Placa-alvo: Arduino Uno (ATmega328P)
  * Barraca Agostina — controlador de fita LED e sirene por relés
  *
  * Protocolo serial (115200 bps, fim de linha \n):

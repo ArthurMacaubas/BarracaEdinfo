@@ -1,6 +1,6 @@
 # Validação da tela pública fixa
 
-Esta validação verifica a composição da rota pública temática de **barraca de cachorro-quente** em um viewport de **1280 × 720 pixels**, a resolução usada como referência para o segundo monitor. Ela foi executada pelo comando `pnpm test:public-layout`, que abre cada prévia em um navegador automatizado e mede a altura do documento, do `body`, do palco público e dos elementos críticos de cada estado.
+Esta validação verifica a composição da rota pública temática de **barraca de cachorro-quente** em um viewport de **1280 × 720 pixels**, a resolução usada como referência para o segundo monitor. Ela foi executada pelo comando `npm run test:public-layout`, que abre cada prévia em um navegador automatizado e mede a altura do documento, do `body`, do palco público e dos elementos críticos de cada estado.
 
 | Estado validado | Rota de prévia | Alturas medidas | Overflow vertical | Resultado |
 |---|---|---:|---|---|
@@ -20,4 +20,4 @@ No novo tema, o verificador também compara os limites dos elementos principais 
 
 Além da medição, foram inspecionadas capturas de viewport dos quatro estados. A hierarquia de anúncio, QR Code PIX atualizado, promoção, boas-vindas e carrossel ampliado de patrocinadores permanece dentro de uma única tela e sem barra de rolagem vertical.
 
-> As evidências reproduzíveis são geradas em `/home/ubuntu/webdev-static-assets/barraca-agostina-ifro-layout/`: quatro capturas PNG de 1280 × 720 pixels e o arquivo `validacao-tela-publica-1280x720.json` com as medições. O comando pode ser reexecutado a qualquer momento no ambiente local com `pnpm test:public-layout`.
+> As evidências reproduzíveis são geradas em `/home/ubuntu/webdev-static-assets/barraca-agostina-ifro-layout/`: quatro capturas PNG de 1280 × 720 pixels e o arquivo `validacao-tela-publica-1280x720.json` com as medições. O comando pode ser reexecutado a qualquer momento no ambiente local com `npm run test:public-layout`.
