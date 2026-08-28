@@ -212,3 +212,7 @@
 - [x] Criar relatório de fechamento com totais por produto e forma de pagamento
 - [x] Permitir exportar o relatório de fechamento em CSV e PDF
 - [x] Validar as melhorias de operação, histórico, PDF e hardware
+- [x] Adicionar gráficos de vendas por produto e forma de pagamento ao fechamento
+- [x] Mostrar status em tempo real do Arduino no painel principal
+- [x] Exibir carregamento e feedback ao gerar comprovantes PDF
+- [x] Validar os gráficos, o indicador do Arduino e a geração de PDF

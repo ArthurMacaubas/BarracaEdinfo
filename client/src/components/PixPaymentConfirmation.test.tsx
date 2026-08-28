@@ -53,7 +53,7 @@ vi.mock("@/lib/trpc", async () => {
   };
 });
 
-vi.mock("sonner", () => ({ toast: { success: mocks.toastSuccess, error: vi.fn() } }));
+vi.mock("sonner", () => ({ toast: { loading: vi.fn(), success: mocks.toastSuccess, error: vi.fn() } }));
 
 function openPendingPixModal() {
   fireEvent.click(screen.getByRole("button", { name: "Confirmar PIX (1)" }));
