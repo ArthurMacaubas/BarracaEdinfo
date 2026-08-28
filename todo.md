@@ -201,3 +201,7 @@
 - [x] Validar o fluxo de comprovante e processamento PIX
 - [x] Cobrir o carregamento do botão PIX enquanto a confirmação está pendente
 - [x] Validar as ações de imprimir e baixar o comprovante PIX
+- [x] Criar página de histórico com pedidos e seus itens detalhados
+- [x] Permitir imprimir, baixar e compartilhar comprovantes pelo WhatsApp
+- [x] Exibir toast de sucesso após imprimir ou baixar o comprovante
+- [x] Validar o histórico de pedidos e as ações de comprovante

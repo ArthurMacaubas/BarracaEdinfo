@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   confirm: vi.fn(),
   invalidate: vi.fn(),
   deferConfirmation: false,
+  toastSuccess: vi.fn(),
 }));
 
 vi.mock("@/lib/trpc", async () => {
@@ -52,7 +53,7 @@ vi.mock("@/lib/trpc", async () => {
   };
 });
 
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("sonner", () => ({ toast: { success: mocks.toastSuccess, error: vi.fn() } }));
 
 function openPendingPixModal() {
   fireEvent.click(screen.getByRole("button", { name: "Confirmar PIX (1)" }));
@@ -67,6 +68,7 @@ describe("PixPaymentConfirmation", () => {
     mocks.confirm.mockReset();
     mocks.invalidate.mockReset();
     mocks.deferConfirmation = false;
+    mocks.toastSuccess.mockReset();
   });
   afterEach(cleanup);
 
@@ -84,8 +86,9 @@ describe("PixPaymentConfirmation", () => {
     expect(mocks.confirm).toHaveBeenCalledWith({ orderId: 91 });
     expect(mocks.invalidate).toHaveBeenCalledTimes(2);
     expect(screen.getByText("Pagamento confirmado")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Imprimir comprovante" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Baixar comprovante" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Imprimir" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Baixar" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "WhatsApp" })).toBeTruthy();
   });
 
   it("exibe a animação e bloqueia o botão enquanto a transação está pendente", () => {
@@ -111,13 +114,18 @@ describe("PixPaymentConfirmation", () => {
     render(<PixPaymentConfirmation />);
     openPendingPixModal();
     confirmOrder();
-    fireEvent.click(screen.getByRole("button", { name: "Imprimir comprovante" }));
-    fireEvent.click(screen.getByRole("button", { name: "Baixar comprovante" }));
+    fireEvent.click(screen.getByRole("button", { name: "Imprimir" }));
+    fireEvent.click(screen.getByRole("button", { name: "Baixar" }));
+    fireEvent.click(screen.getByRole("button", { name: "WhatsApp" }));
 
     expect(open).toHaveBeenCalled();
     expect(write).toHaveBeenCalledWith(expect.stringContaining("Comprovante de pagamento PIX"));
     expect(print).toHaveBeenCalled();
     expect(createObjectUrl).toHaveBeenCalled();
     expect(click).toHaveBeenCalled();
+    expect(open).toHaveBeenCalledWith(expect.stringContaining("https://wa.me/?text="), "_blank", "noopener,noreferrer");
+    expect(mocks.toastSuccess).toHaveBeenCalledWith("Janela de impressão aberta.");
+    expect(mocks.toastSuccess).toHaveBeenCalledWith("Download do comprovante iniciado.");
+    expect(mocks.toastSuccess).toHaveBeenCalledWith("Abrindo o comprovante no WhatsApp.");
   });
 });

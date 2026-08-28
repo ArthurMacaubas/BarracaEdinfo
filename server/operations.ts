@@ -104,6 +104,13 @@ export async function listPendingPixPayments() {
   return pendingOrders.map(order => ({ ...order, items: items.filter(item => pendingIds.has(item.orderId) && item.orderId === order.id) }));
 }
 
+export async function listOrderHistory() {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível.");
+  const [orderRows, itemRows] = await Promise.all([db.select().from(orders).orderBy(desc(orders.createdAt)).limit(200), db.select().from(orderItems)]);
+  return orderRows.map(order => ({ ...order, items: itemRows.filter(item => item.orderId === order.id) }));
+}
+
 export async function confirmPixPayment(orderId: number) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível.");

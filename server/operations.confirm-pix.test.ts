@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("./db", () => ({ getDb: vi.fn() }));
 
 import { getDb } from "./db";
-import { confirmPixPayment, listPendingPixPayments } from "./operations";
+import { confirmPixPayment, listOrderHistory, listPendingPixPayments } from "./operations";
 
 describe("confirmação manual PIX", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -38,5 +38,16 @@ describe("confirmação manual PIX", () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({ id: 25, ticket: 12, total: "35.00" });
     expect(result[0]?.items).toEqual([expect.objectContaining({ productName: "Completo", quantity: 2, subtotal: "30.00" }), expect.objectContaining({ productName: "Suco", quantity: 1, subtotal: "5.00" })]);
+  });
+
+  it("agrupa os itens ao pedido correspondente no histórico", async () => {
+    const orderQuery = { from: () => orderQuery, orderBy: () => orderQuery, limit: vi.fn().mockResolvedValue([{ id: 31, ticket: 14, total: "20.00" }]) };
+    const itemQuery = { from: vi.fn().mockResolvedValue([{ id: 8, orderId: 31, productName: "Completo", quantity: 1, subtotal: "20.00" }, { id: 9, orderId: 32, productName: "Outro", quantity: 1, subtotal: "5.00" }]) };
+    const db = { select: vi.fn().mockReturnValueOnce(orderQuery).mockReturnValueOnce(itemQuery) };
+    vi.mocked(getDb).mockResolvedValue(db as never);
+
+    const result = await listOrderHistory();
+
+    expect(result).toEqual([expect.objectContaining({ id: 31, items: [expect.objectContaining({ productName: "Completo" })] })]);
   });
 });

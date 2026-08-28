@@ -5,7 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
 import { hardwareController } from "./hardware";
-import { confirmPixPayment, createOrder, createOrUpdateProduct, deleteSponsor, getOperationalSnapshot, listAvailableProducts, listPendingPixPayments, PAYMENT_METHODS, recordEvent, reorderSponsors, resetSalesGoalCycle, saveSetting, saveSponsor, saveUnitGoal, setUnitGoalConcurrency, setUnitGoalStatus } from "./operations";
+import { confirmPixPayment, createOrder, createOrUpdateProduct, deleteSponsor, getOperationalSnapshot, listAvailableProducts, listOrderHistory, listPendingPixPayments, PAYMENT_METHODS, recordEvent, reorderSponsors, resetSalesGoalCycle, saveSetting, saveSponsor, saveUnitGoal, setUnitGoalConcurrency, setUnitGoalStatus } from "./operations";
 
 export const appRouter = router({
   system: systemRouter,
@@ -18,6 +18,7 @@ export const appRouter = router({
     products: publicProcedure.query(() => listAvailableProducts()),
     createOrder: publicProcedure.input(z.object({ requestKey: z.string().min(8).max(100), paymentMethod: z.enum(PAYMENT_METHODS), note: z.string().max(500).optional(), items: z.array(z.object({ productId: z.number().int().positive(), quantity: z.number().int().min(1).max(99) })).min(1) })).mutation(({ input }) => createOrder(input)),
     pendingPixPayments: publicProcedure.query(() => listPendingPixPayments()),
+    orderHistory: publicProcedure.query(() => listOrderHistory()),
     confirmPixPayment: publicProcedure.input(z.object({ orderId: z.number().int().positive() })).mutation(({ input }) => confirmPixPayment(input.orderId)),
     saveProduct: publicProcedure.input(z.object({ id: z.number().int().positive().optional(), name: z.string().min(1).max(120), description: z.string().max(500).optional(), category: z.string().min(1).max(60), price: z.number().min(0).max(9999), available: z.boolean(), sortOrder: z.number().int().min(0).max(999).optional() })).mutation(({ input }) => createOrUpdateProduct(input)),
     saveSetting: publicProcedure.input(z.object({ key: z.string().min(1).max(80), value: z.string().max(3_000) })).mutation(({ input }) => saveSetting(input.key, input.value)),
