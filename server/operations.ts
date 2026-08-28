@@ -97,7 +97,11 @@ export async function listPendingPixPayments() {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível.");
   const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
-  return rows.filter(order => canConfirmPixPayment(order)).slice(0, 30);
+  const pendingOrders = rows.filter(order => canConfirmPixPayment(order)).slice(0, 30);
+  if (!pendingOrders.length) return [];
+  const pendingIds = new Set(pendingOrders.map(order => order.id));
+  const items = await db.select().from(orderItems);
+  return pendingOrders.map(order => ({ ...order, items: items.filter(item => pendingIds.has(item.orderId) && item.orderId === order.id) }));
 }
 
 export async function confirmPixPayment(orderId: number) {

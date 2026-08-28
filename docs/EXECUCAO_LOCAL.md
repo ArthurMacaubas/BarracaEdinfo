@@ -138,7 +138,7 @@ Configure `HARDWARE_SERIAL_PORT` para ativar a ponte serial local. No Linux, con
 | `DATABASE_URL is required` | Confira se o `.env` está na raiz e se a URL do MySQL está correta. |
 | `ECONNREFUSED` no banco | Inicie MySQL/MariaDB e confirme host, porta, usuário e senha. |
 | Porta 3000 ocupada | Veja no terminal a porta alternativa escolhida ou finalize o processo que usa a porta. |
-| Arduino continua `OFFLINE` | É esperado até a ponte serial/rede ser implementada e configurada no backend local. |
+| Arduino continua `OFFLINE` | Confira `HARDWARE_SERIAL_PORT`, cabo USB de dados, sketch gravado, permissão da porta serial e se o backend foi reiniciado. |
 | Login OAuth falha | Configure `VITE_APP_ID` e `OAUTH_SERVER_URL` com credenciais válidas, ou use os fluxos públicos durante o desenvolvimento. |
 
 ## Referências

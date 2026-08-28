@@ -192,3 +192,7 @@
 - [x] Criar e versionar um guia completo de execução local
 - [x] Sincronizar a versão mais recente com o repositório GitHub
 - [x] Enviar a sincronização final e confirmar o SHA remoto no GitHub
+- [x] Entregar um passo a passo direto de execução local
+- [x] Analisar o conteúdo anexado pelo usuário e orientar a correção necessária
+- [x] Exibir produtos, quantidades e valor total no modal de confirmação PIX
+- [x] Validar o resumo e a confirmação manual do pagamento PIX
