@@ -242,4 +242,4 @@
 - [x] Remover referências ao Raspberry Pi 4 da execução local e do hardware
 - [x] Substituir comandos e instruções de pnpm por npm
 - [x] Validar a instalação, testes e operação com Arduino Uno usando npm
-- [ ] Publicar e sincronizar a adaptação de Arduino Uno e npm
+- [x] Publicar e sincronizar a adaptação de Arduino Uno e npm
