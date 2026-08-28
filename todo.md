@@ -216,3 +216,4 @@
 - [x] Mostrar status em tempo real do Arduino no painel principal
 - [x] Exibir carregamento e feedback ao gerar comprovantes PDF
 - [x] Validar os gráficos, o indicador do Arduino e a geração de PDF
+- [x] Verificar a interface atual e criar um ponto de verificação confirmado
