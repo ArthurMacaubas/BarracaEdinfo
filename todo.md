@@ -196,3 +196,8 @@
 - [x] Analisar o conteúdo anexado pelo usuário e orientar a correção necessária
 - [x] Exibir produtos, quantidades e valor total no modal de confirmação PIX
 - [x] Validar o resumo e a confirmação manual do pagamento PIX
+- [x] Exibir estado de carregamento durante a confirmação manual PIX
+- [x] Disponibilizar comprovante detalhado para impressão ou download após confirmar PIX
+- [x] Validar o fluxo de comprovante e processamento PIX
+- [x] Cobrir o carregamento do botão PIX enquanto a confirmação está pendente
+- [x] Validar as ações de imprimir e baixar o comprovante PIX
