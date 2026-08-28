@@ -1,6 +1,10 @@
-allowBuilds:
-  '@serialport/bindings-cpp': set this to true or false
-  core-js: set this to true or false
-  esbuild: set this to true or false
+onlyBuiltDependencies:
+  - '@serialport/bindings-cpp'
+  - 'core-js'
+  - 'esbuild'
 minimumReleaseAgeExclude:
   - '@testing-library/react@16.3.3'
+allowBuilds:
+  '@serialport/bindings-cpp': true
+  core-js: true
+  esbuild: true
