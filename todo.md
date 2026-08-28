@@ -228,5 +228,5 @@
 - [x] Criar procedimento de importação opcional de dados MySQL para SQLite
 - [x] Atualizar os guias de execução, backup e restauração locais
 - [x] Validar a migração completa e sincronizar a versão SQLite no GitHub
-- [ ] Reposicionar o botão Mostrar QR para não ficar atrás dos toasts na tela pública
-- [ ] Validar e publicar o reposicionamento do botão Mostrar QR
+- [x] Reposicionar o botão Mostrar QR para não ficar atrás dos toasts na tela pública
+- [x] Validar e publicar o reposicionamento do botão Mostrar QR
