@@ -230,3 +230,11 @@
 - [x] Validar a migração completa e sincronizar a versão SQLite no GitHub
 - [x] Reposicionar o botão Mostrar QR para não ficar atrás dos toasts na tela pública
 - [x] Validar e publicar o reposicionamento do botão Mostrar QR
+- [x] Definir autenticação local segura para substituir o OAuth na operação offline — não aplicável após decisão por operação sem login
+- [x] Remover a dependência obrigatória do OAuth sem deixar rotas ou segredos quebrados
+- [x] Atualizar documentação, testes e configuração do login local — substituído por configuração sem login
+- [x] Validar e publicar a autenticação local — substituído por validação sem login
+- [x] Remover o OAuth e deixar a aplicação acessível sem login no modo local
+- [x] Remover redirecionamentos e dependências de autenticação obrigatória
+- [x] Atualizar `.env`, documentação e testes para o modo sem login
+- [x] Validar e publicar a operação local sem login

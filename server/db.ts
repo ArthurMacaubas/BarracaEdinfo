@@ -7,7 +7,6 @@ import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import * as schema from "../drizzle/schema";
 import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from "./_core/env";
 
 const configuredDatabaseFile = process.env.DATABASE_FILE ?? "./data/barraca-agostina.sqlite";
 export const databaseFile = isAbsolute(configuredDatabaseFile)
@@ -80,7 +79,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     updateSet.lastSignedIn = values.lastSignedIn;
   }
 
-  const role = user.role ?? (user.openId === ENV.ownerOpenId ? "admin" : undefined);
+  const role = user.role;
   if (role) {
     values.role = role;
     updateSet.role = role;

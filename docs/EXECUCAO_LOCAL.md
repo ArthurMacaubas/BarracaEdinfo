@@ -47,14 +47,9 @@ PORT=3000
 # Opcional: se omitido, o sistema usará ./data/barraca-agostina.sqlite
 DATABASE_FILE="./data/barraca-agostina.sqlite"
 
-JWT_SECRET="troque-por-uma-chave-longa-e-aleatoria"
+# A operação local não exige credenciais de login.
 HARDWARE_SERIAL_PORT="auto"
 HARDWARE_SERIAL_BAUD_RATE="115200"
-
-# Necessários apenas para login OAuth da plataforma Manus.
-VITE_APP_ID=""
-OAUTH_SERVER_URL=""
-OWNER_OPEN_ID=""
 ```
 
 O caminho definido por `DATABASE_FILE` é relativo à pasta do projeto. Você também pode usar um caminho absoluto, como `DATABASE_FILE="/home/pi/BarracaEdinfo/data/barraca-agostina.sqlite"`, se quiser manter os dados em outro disco local. **Não coloque o arquivo SQLite em uma pasta compartilhada pela rede.**
@@ -151,7 +146,7 @@ Confirme o cadastro de produtos, a criação de um pedido, a confirmação PIX, 
 | Dados sumiram após trocar de computador | Copie o arquivo `data/barraca-agostina.sqlite` da instalação anterior antes de iniciar a nova. |
 | Banco ficou em local errado | Ajuste `DATABASE_FILE`, mova o arquivo com o sistema parado e execute `pnpm db:verify`. |
 | Arduino continua `OFFLINE` | Confira cabo USB de dados, sketch gravado, porta serial, permissões e reinicie o backend. |
-| Login OAuth falha | Configure `VITE_APP_ID` e `OAUTH_SERVER_URL`, ou use os fluxos públicos durante a operação local. |
+| Acesso ao painel local | A operação local não possui login; mantenha o servidor restrito à rede confiável e não exponha a porta diretamente à Internet. |
 
 ## Referências
 
