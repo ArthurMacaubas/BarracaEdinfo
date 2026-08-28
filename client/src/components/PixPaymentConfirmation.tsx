@@ -6,8 +6,8 @@ import { BadgeCheck, CheckCircle2, CircleDollarSign, Download, FileDown, Loader2
 import React, { useState } from "react";
 import { toast } from "sonner";
 
-type PendingPixItem = { id: number; orderId: number; productName: string; quantity: number; unitPrice: string; subtotal: string };
-type PendingPix = { id: number; ticket: number; total: string; paymentMethod: string; createdAt: Date; items: PendingPixItem[] };
+type PendingPixItem = { id: number; orderId: number; productName: string; quantity: number; unitPrice: number; subtotal: number };
+type PendingPix = { id: number; ticket: number; total: number; paymentMethod: string; createdAt: Date; items: PendingPixItem[] };
 type PixReceipt = PendingPix & { pixConfirmedAt: Date };
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });

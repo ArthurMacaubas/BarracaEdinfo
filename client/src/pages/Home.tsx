@@ -20,7 +20,7 @@ import "./main-screen.css";
 function Configuration(props: Parameters<typeof OperationSetup>[0]) { return <><OperationSetup {...props} /><RelayControls /></>; }
 
 type Status = "NEW" | "PREPARING" | "READY" | "DELIVERED" | "CANCELLED";
-type Product = { id: number; name: string; description: string | null; category: string; price: string; available: boolean; sortOrder: number };
+type Product = { id: number; name: string; description: string | null; category: string; price: number; available: boolean; sortOrder: number };
 type Metrics = { totalOrders: number; sales: number; cycleSales: number; ticketAverage: number; queues: Record<Status, number> };
 type Connection = { database: string; hardware: { state: string; queued: number; logs: { at: Date; message: string; level: string }[] } };
 type Sponsor = { id: number; name: string; imageUrl: string; backgroundColor: string; enabled: boolean; sortOrder: number };

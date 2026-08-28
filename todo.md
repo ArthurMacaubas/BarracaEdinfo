@@ -221,3 +221,10 @@
 - [x] Auditar e remover somente arquivos comprovadamente não utilizados
 - [x] Validar o projeto após a limpeza
 - [x] Sincronizar a limpeza validada com o GitHub
+- [x] Mapear todas as dependências e consultas específicas de MySQL/MariaDB
+- [x] Converter o schema Drizzle, a configuração e a camada de dados para SQLite local
+- [x] Criar inicialização SQLite com arquivo local, WAL e diretório de dados ignorado pelo Git
+- [x] Adaptar operações, autenticação e testes às semânticas SQLite
+- [x] Criar procedimento de importação opcional de dados MySQL para SQLite
+- [x] Atualizar os guias de execução, backup e restauração locais
+- [ ] Validar a migração completa e sincronizar a versão SQLite no GitHub

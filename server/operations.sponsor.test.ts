@@ -9,7 +9,12 @@ describe("saveSponsor", () => {
 
   it("persiste a cor de fundo escolhida para o patrocinador", async () => {
     const saved: unknown[] = [];
-    const insert = vi.fn(() => ({ values: vi.fn(async (values: unknown) => { saved.push(values); return saved.length === 1 ? [{ insertId: 19 }] : undefined; }) }));
+    const insert = vi.fn(() => ({
+      values: (values: unknown) => {
+        saved.push(values);
+        return { returning: () => Promise.resolve([{ id: 19 }]), run: () => ({ changes: 1 }) };
+      },
+    }));
     vi.mocked(getDb).mockResolvedValue({ insert } as never);
 
     await saveSponsor({ name: "Padaria da Praça", imageUrl: "https://example.com/logo.png", backgroundColor: "#123abc", enabled: true, sortOrder: 2 });
@@ -21,21 +26,25 @@ describe("saveSponsor", () => {
     const rows = [{ id: 1 }, { id: 2 }, { id: 3 }];
     const updates: unknown[] = [];
     const select = vi.fn(() => ({ from: vi.fn().mockResolvedValue(rows) }));
-    const update = vi.fn(() => ({ set: vi.fn((values: unknown) => { updates.push(values); return { where: vi.fn().mockResolvedValue(undefined) }; }) }));
-    const insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+    const update = vi.fn(() => ({ set: vi.fn((values: unknown) => { updates.push(values); return { where: vi.fn(() => ({ run: () => ({ changes: 1 }) })) }; }) }));
+    const insert = vi.fn(() => ({ values: vi.fn(() => ({ run: () => ({ changes: 1 }) })) }));
     vi.mocked(getDb).mockResolvedValue({ select, update, insert } as never);
 
     await expect(reorderSponsors([3, 1, 2])).resolves.toEqual([3, 1, 2]);
 
-    expect(updates).toEqual([{ sortOrder: 0 }, { sortOrder: 1 }, { sortOrder: 2 }]);
+    expect(updates).toEqual([
+      expect.objectContaining({ sortOrder: 0, updatedAt: expect.any(Date) }),
+      expect.objectContaining({ sortOrder: 1, updatedAt: expect.any(Date) }),
+      expect.objectContaining({ sortOrder: 2, updatedAt: expect.any(Date) }),
+    ]);
   });
 
   it("exclui um patrocinador existente e registra a auditoria", async () => {
     const where = vi.fn(() => ({ limit: vi.fn().mockResolvedValue([{ id: 7, name: "Marca removida" }]) }));
     const select = vi.fn(() => ({ from: vi.fn(() => ({ where })) }));
-    const removeWhere = vi.fn().mockResolvedValue(undefined);
+    const removeWhere = vi.fn(() => ({ run: () => ({ changes: 1 }) }));
     const remove = vi.fn(() => ({ where: removeWhere }));
-    const insertValues = vi.fn().mockResolvedValue(undefined);
+    const insertValues = vi.fn(() => ({ run: () => ({ changes: 1 }) }));
     const insert = vi.fn(() => ({ values: insertValues }));
     vi.mocked(getDb).mockResolvedValue({ select, delete: remove, insert } as never);
 

@@ -1,135 +1,138 @@
-import { boolean, decimal, int, mysqlEnum, mysqlTable, text, timestamp, unique, varchar } from "drizzle-orm/mysql-core";
+import { integer, real, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
+const timestamp = (name: string) => integer(name, { mode: "timestamp_ms" }).defaultNow().notNull();
+const nullableTimestamp = (name: string) => integer(name, { mode: "timestamp_ms" });
+
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  openId: text("openId").notNull().unique(),
   name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  email: text("email"),
+  loginMethod: text("loginMethod"),
+  role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
+  createdAt: timestamp("createdAt"),
+  updatedAt: timestamp("updatedAt"),
+  lastSignedIn: timestamp("lastSignedIn"),
 });
 
-export const products = mysqlTable("products", {
-  id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 120 }).notNull(),
+export const products = sqliteTable("products", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
   description: text("description"),
-  category: varchar("category", { length: 60 }).notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  available: boolean("available").default(true).notNull(),
-  sortOrder: int("sortOrder").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  category: text("category").notNull(),
+  price: real("price").notNull(),
+  available: integer("available", { mode: "boolean" }).default(true).notNull(),
+  sortOrder: integer("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt"),
+  updatedAt: timestamp("updatedAt"),
 });
 
-export const orders = mysqlTable("orders", {
-  id: int("id").autoincrement().primaryKey(),
-  ticket: int("ticket").notNull().unique(),
-  requestKey: varchar("requestKey", { length: 100 }).notNull().unique(),
-  status: mysqlEnum("status", ["NEW", "PREPARING", "READY", "DELIVERED", "CANCELLED"]).default("NEW").notNull(),
-  paymentMethod: mysqlEnum("paymentMethod", ["PIX", "CASH", "CARD"]).notNull(),
-  pixConfirmedAt: timestamp("pixConfirmedAt"),
-  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+export const orders = sqliteTable("orders", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  ticket: integer("ticket").notNull().unique(),
+  requestKey: text("requestKey").notNull().unique(),
+  status: text("status", { enum: ["NEW", "PREPARING", "READY", "DELIVERED", "CANCELLED"] }).default("NEW").notNull(),
+  paymentMethod: text("paymentMethod", { enum: ["PIX", "CASH", "CARD"] }).notNull(),
+  pixConfirmedAt: nullableTimestamp("pixConfirmedAt"),
+  total: real("total").notNull(),
   note: text("note"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("createdAt"),
+  updatedAt: timestamp("updatedAt"),
 });
 
-export const orderItems = mysqlTable("order_items", {
-  id: int("id").autoincrement().primaryKey(),
-  orderId: int("orderId").notNull().references(() => orders.id, { onDelete: "restrict", onUpdate: "cascade" }),
-  productId: int("productId").notNull().references(() => products.id, { onDelete: "restrict", onUpdate: "cascade" }),
-  productName: varchar("productName", { length: 120 }).notNull(),
-  quantity: int("quantity").notNull(),
-  unitPrice: decimal("unitPrice", { precision: 10, scale: 2 }).notNull(),
-  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+export const orderItems = sqliteTable("order_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orderId: integer("orderId").notNull().references(() => orders.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  productId: integer("productId").notNull().references(() => products.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  productName: text("productName").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: real("unitPrice").notNull(),
+  subtotal: real("subtotal").notNull(),
 });
 
-export const operationSettings = mysqlTable("operation_settings", {
-  id: int("id").autoincrement().primaryKey(),
-  key: varchar("key", { length: 80 }).notNull().unique(),
+export const operationSettings = sqliteTable("operation_settings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  key: text("key").notNull().unique(),
   value: text("value").notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt"),
 });
 
-export const operationEvents = mysqlTable("operation_events", {
-  id: int("id").autoincrement().primaryKey(),
-  type: varchar("type", { length: 80 }).notNull(),
-  entityType: varchar("entityType", { length: 50 }),
-  entityId: int("entityId"),
+export const operationEvents = sqliteTable("operation_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  type: text("type").notNull(),
+  entityType: text("entityType"),
+  entityId: integer("entityId"),
   payload: text("payload"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt"),
 });
 
-export const hardwareCommands = mysqlTable("hardware_commands", {
-  id: int("id").autoincrement().primaryKey(),
-  commandKey: varchar("commandKey", { length: 120 }).notNull().unique(),
-  type: varchar("type", { length: 40 }).notNull(),
+export const hardwareCommands = sqliteTable("hardware_commands", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  commandKey: text("commandKey").notNull().unique(),
+  type: text("type").notNull(),
   payload: text("payload"),
-  status: mysqlEnum("status", ["QUEUED", "SENT", "ACK", "FAILED"]).default("QUEUED").notNull(),
-  attempts: int("attempts").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  status: text("status", { enum: ["QUEUED", "SENT", "ACK", "FAILED"] }).default("QUEUED").notNull(),
+  attempts: integer("attempts").default(0).notNull(),
+  createdAt: timestamp("createdAt"),
+  updatedAt: timestamp("updatedAt"),
 });
 
-export const sponsors = mysqlTable("sponsors", {
-  id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 120 }).notNull(),
+export const sponsors = sqliteTable("sponsors", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
   imageUrl: text("imageUrl").notNull(),
-  backgroundColor: varchar("backgroundColor", { length: 16 }).default("#fffaf0").notNull(),
-  enabled: boolean("enabled").default(true).notNull(),
-  sortOrder: int("sortOrder").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  backgroundColor: text("backgroundColor").default("#fffaf0").notNull(),
+  enabled: integer("enabled", { mode: "boolean" }).default(true).notNull(),
+  sortOrder: integer("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt"),
+  updatedAt: timestamp("updatedAt"),
 });
 
-export const goalAlerts = mysqlTable("goal_alerts", {
-  id: int("id").autoincrement().primaryKey(),
-  goalAmount: decimal("goalAmount", { precision: 10, scale: 2 }).notNull(),
-  cycleKey: varchar("cycleKey", { length: 64 }).notNull().default("initial"),
-  salesAtTrigger: decimal("salesAtTrigger", { precision: 10, scale: 2 }).notNull(),
+export const goalAlerts = sqliteTable("goal_alerts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  goalAmount: real("goalAmount").notNull(),
+  cycleKey: text("cycleKey").notNull().default("initial"),
+  salesAtTrigger: real("salesAtTrigger").notNull(),
   message: text("message").notNull(),
-  announcedAt: timestamp("announcedAt").defaultNow().notNull(),
-  sirenSentAt: timestamp("sirenSentAt"),
+  announcedAt: timestamp("announcedAt"),
+  sirenSentAt: nullableTimestamp("sirenSentAt"),
 }, table => [unique("goal_alerts_goal_cycle_unique").on(table.goalAmount, table.cycleKey)]);
 
-export const unitGoals = mysqlTable("unit_goals", {
-  id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 120 }).notNull(),
-  targetUnits: int("targetUnits").notNull(),
+export const unitGoals = sqliteTable("unit_goals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  targetUnits: integer("targetUnits").notNull(),
   message: text("message").notNull(),
-  status: mysqlEnum("status", ["QUEUED", "ACTIVE", "COMPLETED", "PAUSED"]).default("QUEUED").notNull(),
-  priority: int("priority").default(0).notNull(),
-  activatedAt: timestamp("activatedAt"),
-  completedAt: timestamp("completedAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  status: text("status", { enum: ["QUEUED", "ACTIVE", "COMPLETED", "PAUSED"] }).default("QUEUED").notNull(),
+  priority: integer("priority").default(0).notNull(),
+  activatedAt: nullableTimestamp("activatedAt"),
+  completedAt: nullableTimestamp("completedAt"),
+  createdAt: timestamp("createdAt"),
+  updatedAt: timestamp("updatedAt"),
 });
 
-export const unitGoalProducts = mysqlTable("unit_goal_products", {
-  id: int("id").autoincrement().primaryKey(),
-  goalId: int("goalId").notNull().references(() => unitGoals.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  productId: int("productId").notNull().references(() => products.id, { onDelete: "restrict", onUpdate: "cascade" }),
+export const unitGoalProducts = sqliteTable("unit_goal_products", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  goalId: integer("goalId").notNull().references(() => unitGoals.id, { onDelete: "cascade", onUpdate: "cascade" }),
+  productId: integer("productId").notNull().references(() => products.id, { onDelete: "restrict", onUpdate: "cascade" }),
 }, table => [unique("unit_goal_products_goal_product_unique").on(table.goalId, table.productId)]);
 
-export const unitGoalAlerts = mysqlTable("unit_goal_alerts", {
-  id: int("id").autoincrement().primaryKey(),
-  goalId: int("goalId").notNull().references(() => unitGoals.id, { onDelete: "restrict", onUpdate: "cascade" }),
-  unitsAtTrigger: int("unitsAtTrigger").notNull(),
+export const unitGoalAlerts = sqliteTable("unit_goal_alerts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  goalId: integer("goalId").notNull().references(() => unitGoals.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  unitsAtTrigger: integer("unitsAtTrigger").notNull(),
   message: text("message").notNull(),
-  announcedAt: timestamp("announcedAt").defaultNow().notNull(),
-  sirenSentAt: timestamp("sirenSentAt"),
+  announcedAt: timestamp("announcedAt"),
+  sirenSentAt: nullableTimestamp("sirenSentAt"),
 }, table => [unique("unit_goal_alerts_goal_unique").on(table.goalId)]);
 
-export const publicPixCampaigns = mysqlTable("public_pix_campaigns", {
-  id: int("id").autoincrement().primaryKey(),
-  orderId: int("orderId").notNull().references(() => orders.id, { onDelete: "restrict", onUpdate: "cascade" }),
-  ticket: int("ticket").notNull(),
+export const publicPixCampaigns = sqliteTable("public_pix_campaigns", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orderId: integer("orderId").notNull().references(() => orders.id, { onDelete: "restrict", onUpdate: "cascade" }),
+  ticket: integer("ticket").notNull(),
   pixPayload: text("pixPayload").notNull(),
-  activeUntil: timestamp("activeUntil").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  activeUntil: integer("activeUntil", { mode: "timestamp_ms" }).notNull(),
+  createdAt: timestamp("createdAt"),
 });
 
 export type Product = typeof products.$inferSelect;

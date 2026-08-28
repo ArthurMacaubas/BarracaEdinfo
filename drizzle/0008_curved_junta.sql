@@ -1,1 +1,0 @@
-ALTER TABLE `sponsors` ADD `backgroundColor` varchar(16) DEFAULT '#fffaf0' NOT NULL;

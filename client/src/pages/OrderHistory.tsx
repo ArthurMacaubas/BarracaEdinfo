@@ -6,8 +6,8 @@ import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
-type Item = { id: number; productName: string; quantity: number; subtotal: string };
-type Order = { id: number; ticket: number; total: string; status: string; paymentMethod: string; createdAt: Date; pixConfirmedAt: Date | null; items: Item[] };
+type Item = { id: number; productName: string; quantity: number; subtotal: number };
+type Order = { id: number; ticket: number; total: number; status: string; paymentMethod: string; createdAt: Date; pixConfirmedAt: Date | null; items: Item[] };
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const date = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 const statuses: Record<string, string> = { NEW: "Novo", PREPARING: "Em preparo", READY: "Pronto", DELIVERED: "Entregue", CANCELLED: "Cancelado" };

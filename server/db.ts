@@ -1,92 +1,99 @@
+import { mkdirSync } from "node:fs";
+import { dirname, isAbsolute, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { createClient, type Client } from "@libsql/client";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
+import { migrate } from "drizzle-orm/libsql/migrator";
+import * as schema from "../drizzle/schema";
 import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import { ENV } from "./_core/env";
 
-let _db: ReturnType<typeof drizzle> | null = null;
+const configuredDatabaseFile = process.env.DATABASE_FILE ?? "./data/barraca-agostina.sqlite";
+export const databaseFile = isAbsolute(configuredDatabaseFile)
+  ? configuredDatabaseFile
+  : resolve(process.cwd(), configuredDatabaseFile);
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
-export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
-    try {
-      _db = drizzle(process.env.DATABASE_URL);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
-    }
-  }
-  return _db;
+type AppDatabase = LibSQLDatabase<typeof schema> & { $client: Client };
+
+let client: Client | null = null;
+let _db: AppDatabase | null = null;
+let initialization: Promise<AppDatabase> | null = null;
+
+async function initializeDatabase() {
+  if (_db) return _db;
+
+  mkdirSync(dirname(databaseFile), { recursive: true });
+  client = createClient({ url: pathToFileURL(databaseFile).href });
+  await client.execute("PRAGMA journal_mode = WAL");
+  await client.execute("PRAGMA foreign_keys = ON");
+  await client.execute("PRAGMA busy_timeout = 5000");
+
+  const db = drizzle({ client, schema });
+  await migrate(db, { migrationsFolder: resolve(process.cwd(), "drizzle/migrations") });
+  _db = db;
+  return db;
 }
 
-export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
-
+/** Retorna a conexão SQLite local e garante que o schema versionado foi aplicado. */
+export async function getDb() {
+  if (!_db) initialization ??= initializeDatabase();
   try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    return await initialization!;
   } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
+    initialization = null;
+    client?.close();
+    client = null;
+    console.error("[Database] Falha ao inicializar o SQLite local:", error);
     throw error;
   }
 }
 
-export async function getUserByOpenId(openId: string) {
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+/** Expõe o cliente SQLite apenas para rotinas locais de manutenção, como importação e backup. */
+export async function getSqliteClient() {
+  await getDb();
+  if (!client) throw new Error("Cliente SQLite indisponível.");
+  return client;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function upsertUser(user: InsertUser): Promise<void> {
+  if (!user.openId) throw new Error("User openId is required for upsert");
+
+  const db = await getDb();
+  const values: InsertUser = { openId: user.openId };
+  const updateSet: Record<string, string | Date | null> = { updatedAt: new Date() };
+  const textFields = ["name", "email", "loginMethod"] as const;
+
+  for (const field of textFields) {
+    if (user[field] !== undefined) {
+      const value = user[field] ?? null;
+      values[field] = value;
+      updateSet[field] = value;
+    }
+  }
+
+  if (user.lastSignedIn !== undefined) {
+    values.lastSignedIn = user.lastSignedIn;
+    updateSet.lastSignedIn = user.lastSignedIn;
+  } else {
+    values.lastSignedIn = new Date();
+    updateSet.lastSignedIn = values.lastSignedIn;
+  }
+
+  const role = user.role ?? (user.openId === ENV.ownerOpenId ? "admin" : undefined);
+  if (role) {
+    values.role = role;
+    updateSet.role = role;
+  }
+
+  await db.insert(users).values(values).onConflictDoUpdate({
+    target: users.openId,
+    set: updateSet,
+  });
+}
+
+export async function getUserByOpenId(openId: string) {
+  const db = await getDb();
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  return result[0];
+}

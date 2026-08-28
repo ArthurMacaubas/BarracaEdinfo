@@ -1,57 +1,33 @@
-# Executar a Barraca Agostina localmente
+# Executar a Barraca Agostina localmente com SQLite
+
+Este sistema foi preparado para uso **offline-first**. Produtos, pedidos, metas, PIX, patrocinadores e registros de auditoria ficam em um arquivo SQLite dentro da instalação local, sem depender de MariaDB ou MySQL em execução.
+
+> O arquivo padrão é `data/barraca-agostina.sqlite`. Ele é criado automaticamente na primeira inicialização, usa modo WAL e não é enviado ao GitHub.
 
 ## 1. Pré-requisitos
 
-Instale **Node.js 22 LTS** e `pnpm`. O projeto usa TypeScript, Vite, Express e MySQL/MariaDB. Para executar a operação com dados persistentes, tenha também um servidor MySQL ou MariaDB disponível. [1] [2]
+Instale o **Node.js 22 LTS**, o Git e o `pnpm`. Não é necessário instalar MariaDB, MySQL, Docker ou outro serviço de banco de dados. O Arduino IDE é necessário apenas para gravar o firmware no Arduino. O Drizzle possui suporte oficial a bancos SQLite locais por meio de clientes compatíveis com arquivo. [1]
 
-| Requisito | Uso no projeto |
+| Requisito | Uso no sistema |
 | --- | --- |
-| Node.js 22 LTS | Executa o servidor Express, Vite e os scripts TypeScript. |
-| pnpm | Instala as dependências travadas no `pnpm-lock.yaml`. |
-| MySQL/MariaDB | Persiste produtos, pedidos, metas, PIX, patrocinadores e auditoria. |
-| Arduino IDE | Necessária apenas para gravar o sketch do controlador físico. |
+| Node.js 22 LTS | Executa o servidor Express, a interface Vite e os comandos locais. |
+| Git | Baixa e atualiza o código do projeto. |
+| pnpm | Instala as dependências travadas no projeto. |
+| Arduino IDE | Grava o sketch dos relés, somente quando houver hardware. |
 
-## 2. Preparar o Ubuntu ou Raspberry Pi
-
-Atualize o sistema e instale o Git e o MariaDB:
+No Ubuntu ou Raspberry Pi, instale Git e habilite o gerenciador de pacotes do Node:
 
 ```bash
 sudo apt update
-sudo apt install -y git mariadb-server
-sudo systemctl enable --now mariadb
-```
-
-Instale o **Node.js 22 LTS** pelo método oficial da distribuição escolhida e confirme a instalação. Depois habilite o gerenciador de pacotes incluído no Node:
-
-```bash
-node --version
+sudo apt install -y git
 corepack enable
+node --version
 pnpm --version
 ```
 
-Os dois últimos comandos devem mostrar uma versão do Node `v22.x` e uma versão do `pnpm`. Se `pnpm` não aparecer, feche e abra o terminal após executar `corepack enable`.
+## 2. Baixar e instalar o projeto
 
-## 3. Criar banco e usuário da aplicação
-
-Abra o console do MariaDB:
-
-```bash
-sudo mariadb
-```
-
-Execute os comandos abaixo, trocando `UMA_SENHA_FORTE` por uma senha exclusiva da aplicação:
-
-```sql
-CREATE DATABASE barraca_agostina CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'barraca'@'localhost' IDENTIFIED BY 'UMA_SENHA_FORTE';
-GRANT ALL PRIVILEGES ON barraca_agostina.* TO 'barraca'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-## 4. Clonar e instalar
-
-No terminal, execute:
+Execute os comandos abaixo uma única vez:
 
 ```bash
 git clone https://github.com/ArthurMacaubas/BarracaEdinfo.git
@@ -60,91 +36,127 @@ corepack enable
 pnpm install
 ```
 
-Se for conectar o Arduino pela porta USB, permita a compilação do driver serial nativo quando o `pnpm` solicitar. No `pnpm approve-builds`, selecione `@serialport/bindings-cpp`; em seguida, execute `pnpm rebuild @serialport/bindings-cpp`.
+## 3. Configurar o ambiente local
 
-## 5. Criar o arquivo `.env`
-
-Na raiz do projeto, crie o arquivo `.env` com valores locais. **Não envie esse arquivo ao GitHub.**
+Crie um arquivo chamado `.env` na raiz do projeto. Ele não deve ser enviado ao GitHub.
 
 ```dotenv
 NODE_ENV=development
 PORT=3000
-DATABASE_URL="mysql://barraca:UMA_SENHA_FORTE@127.0.0.1:3306/barraca_agostina"
+
+# Opcional: se omitido, o sistema usará ./data/barraca-agostina.sqlite
+DATABASE_FILE="./data/barraca-agostina.sqlite"
+
 JWT_SECRET="troque-por-uma-chave-longa-e-aleatoria"
 HARDWARE_SERIAL_PORT="auto"
 HARDWARE_SERIAL_BAUD_RATE="115200"
 
-# Necessários somente se você for usar login OAuth da plataforma Manus localmente.
+# Necessários apenas para login OAuth da plataforma Manus.
 VITE_APP_ID=""
 OAUTH_SERVER_URL=""
 OWNER_OPEN_ID=""
 ```
 
-> Sem `DATABASE_URL`, o servidor pode iniciar, mas os recursos que dependem de persistência não funcionarão corretamente. O login OAuth também exige credenciais válidas; as rotas operacionais públicas continuam carregando sem login automático.
+O caminho definido por `DATABASE_FILE` é relativo à pasta do projeto. Você também pode usar um caminho absoluto, como `DATABASE_FILE="/home/pi/BarracaEdinfo/data/barraca-agostina.sqlite"`, se quiser manter os dados em outro disco local. **Não coloque o arquivo SQLite em uma pasta compartilhada pela rede.**
 
-## 6. Aplicar o schema do banco
+## 4. Criar e verificar o banco local
 
-Com o MySQL/MariaDB ativo e a `DATABASE_URL` configurada, execute:
+Na primeira execução, o comando abaixo cria o diretório de dados, aplica as migrations SQLite e verifica uma consulta no arquivo local:
 
 ```bash
+pnpm db:verify
+```
+
+O mesmo processo é executado automaticamente quando o sistema inicia. Após uma futura alteração de schema, gere uma migration e aplique-a no banco local:
+
+```bash
+pnpm db:generate
 pnpm db:push
 ```
 
-Esse comando gera e aplica as migrations Drizzle ao banco configurado. [3]
+## 5. Iniciar a barraca
 
-## 7. Rodar em desenvolvimento
+Para desenvolvimento ou operação local, execute:
 
 ```bash
 pnpm dev
 ```
 
-Abra no navegador:
+Abra `http://localhost:3000`. Para acessar pelo caixa, tablet ou segundo monitor na mesma rede, abra o endereço IP local do computador ou Raspberry Pi, por exemplo `http://192.168.0.50:3000`.
 
-```text
-http://localhost:3000
-```
+Todos os dispositivos usam a mesma API local; apenas o computador/Raspberry Pi que executa `pnpm dev` acessa o arquivo SQLite e a porta USB do Arduino.
 
-Se a porta 3000 estiver ocupada, o servidor escolhe a próxima porta livre e mostra o endereço no terminal. Para testar em outro dispositivo da mesma rede, use o IP local da máquina, como `http://192.168.0.50:3000`.
+## 6. Backup e restauração
 
-## 8. Validar antes de usar
+Antes de copiar, restaurar ou substituir o banco, **pare o servidor** com `Ctrl+C`. Em seguida, copie apenas o arquivo SQLite para uma unidade USB, outro disco local ou local seguro.
 
 ```bash
-pnpm check
-pnpm test
+mkdir -p backups
+cp data/barraca-agostina.sqlite "backups/barraca-agostina-$(date +%F-%H%M).sqlite"
 ```
 
-Para gerar e rodar a versão de produção localmente:
+Para restaurar um backup, pare o sistema e substitua o arquivo atual. Guarde uma cópia do arquivo atual antes de restaurar.
 
 ```bash
-pnpm build
-pnpm start
+cp data/barraca-agostina.sqlite "backups/antes-da-restauracao-$(date +%F-%H%M).sqlite"
+cp backups/SEU_BACKUP.sqlite data/barraca-agostina.sqlite
+pnpm db:verify
 ```
 
-## 9. Arduino e hardware
+| Situação | Procedimento recomendado |
+| --- | --- |
+| Trocar de computador/Raspberry Pi | Com o servidor parado, copie `data/barraca-agostina.sqlite` para a mesma pasta na nova instalação. |
+| Salvar antes do evento | Faça uma cópia do arquivo em `backups/` e também em uma unidade USB. |
+| Recuperar uma cópia anterior | Pare o servidor, guarde o arquivo atual, substitua pelo backup e execute `pnpm db:verify`. |
+| Arquivo inacessível | Confira permissões da pasta `data/` e restaure o backup mais recente conhecido. |
 
-O Arduino deve ser ligado por USB à mesma máquina/Raspberry Pi onde o **backend local** está em execução. O sketch e a ligação dos dois relés estão em:
+## 7. Importar dados de uma instalação MariaDB/MySQL anterior
+
+Se já existirem dados no MariaDB/MySQL antigo, faça primeiro um backup do banco antigo e do novo arquivo SQLite. Depois, com o servidor local parado, informe a URL da origem e execute a importação.
+
+```bash
+MYSQL_SOURCE_URL="mysql://USUARIO:SENHA@127.0.0.1:3306/barraca_agostina" \
+pnpm db:import-mysql -- --replace
+```
+
+O parâmetro `--replace` só é permitido de propósito: ele limpa os dados atuais no arquivo SQLite antes de importar. A rotina valida referências entre tabelas ao final. Sem uma origem MySQL/MariaDB disponível, comece com o novo SQLite vazio normalmente.
+
+## 8. Arduino e hardware
+
+O Arduino deve ser conectado por USB ao mesmo computador ou Raspberry Pi que executa o backend local. O sketch e o guia elétrico estão em:
 
 ```text
 firmware/arduino_barraca_agostina/arduino_barraca_agostina.ino
 docs/CONEXAO_ARDUINO.md
 ```
 
-Use `HARDWARE_SERIAL_PORT="auto"` para o sistema localizar automaticamente uma porta Arduino/USB. Caso existam vários dispositivos seriais, informe a porta específica: no Linux, use `ls /dev/ttyACM* /dev/ttyUSB*`; no Windows, use a porta indicada pela Arduino IDE, como `COM3`. O site hospedado na nuvem não tem acesso direto à porta USB local.
+Mantenha `HARDWARE_SERIAL_PORT="auto"` para detectar automaticamente a porta. Caso existam vários dispositivos seriais, informe a porta correta, como `/dev/ttyACM0`, `/dev/ttyUSB0` ou `COM3`. Uma versão hospedada na nuvem não consegue acessar USB local nem preservar o arquivo SQLite como armazenamento operacional.
+
+## 9. Validar antes do evento
+
+```bash
+pnpm check
+pnpm test
+pnpm db:verify
+pnpm dev
+```
+
+Confirme o cadastro de produtos, a criação de um pedido, a confirmação PIX, a tela pública e o painel de relés antes de abrir a barraca.
 
 ## Problemas comuns
 
 | Sintoma | Verificação |
 | --- | --- |
-| `DATABASE_URL is required` | Confira se o `.env` está na raiz e se a URL do MySQL está correta. |
-| `ECONNREFUSED` no banco | Inicie MySQL/MariaDB e confirme host, porta, usuário e senha. |
-| Porta 3000 ocupada | Veja no terminal a porta alternativa escolhida ou finalize o processo que usa a porta. |
-| Arduino continua `OFFLINE` | Confira `HARDWARE_SERIAL_PORT`, cabo USB de dados, sketch gravado, permissão da porta serial e se o backend foi reiniciado. |
-| Login OAuth falha | Configure `VITE_APP_ID` e `OAUTH_SERVER_URL` com credenciais válidas, ou use os fluxos públicos durante o desenvolvimento. |
+| Erro ao abrir o banco | Confira se a pasta definida em `DATABASE_FILE` existe e se o usuário tem permissão de escrita. |
+| Dados sumiram após trocar de computador | Copie o arquivo `data/barraca-agostina.sqlite` da instalação anterior antes de iniciar a nova. |
+| Banco ficou em local errado | Ajuste `DATABASE_FILE`, mova o arquivo com o sistema parado e execute `pnpm db:verify`. |
+| Arduino continua `OFFLINE` | Confira cabo USB de dados, sketch gravado, porta serial, permissões e reinicie o backend. |
+| Login OAuth falha | Configure `VITE_APP_ID` e `OAUTH_SERVER_URL`, ou use os fluxos públicos durante a operação local. |
 
 ## Referências
 
-[1] [Node.js — Download](https://nodejs.org/en/download)
+[1] [Drizzle ORM — SQLite](https://orm.drizzle.team/docs/sqlite/get-started-sqlite)
 
-[2] [pnpm — Installation](https://pnpm.io/installation)
+[2] [Node.js — Download](https://nodejs.org/en/download)
 
-[3] [Drizzle Kit — Overview](https://orm.drizzle.team/docs/kit-overview)
+[3] [pnpm — Installation](https://pnpm.io/installation)

@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 
-export type ReceiptPdfOrder = { ticket: number; total: string; paymentMethod: string; createdAt: Date; pixConfirmedAt?: Date | null; items: Array<{ productName: string; quantity: number; subtotal: string }> };
+export type ReceiptPdfOrder = { ticket: number; total: number; paymentMethod: string; createdAt: Date; pixConfirmedAt?: Date | null; items: Array<{ productName: string; quantity: number; subtotal: number }> };
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function downloadReceiptPdf(order: ReceiptPdfOrder, prefix = "comprovante-pedido") {

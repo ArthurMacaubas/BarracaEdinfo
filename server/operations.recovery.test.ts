@@ -38,9 +38,9 @@ describe("recuperação de alertas na inicialização", () => {
       const query = { from: () => query, where: () => query, orderBy: () => query, limit: vi.fn().mockResolvedValue(result) };
       return query;
     });
-    const where = vi.fn().mockResolvedValue(undefined);
+    const where = vi.fn(() => ({ run: () => ({ changes: 1 }) }));
     const update = vi.fn(() => ({ set: vi.fn(() => ({ where })) }));
-    const insert = vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) }));
+    const insert = vi.fn(() => ({ values: vi.fn(() => ({ run: () => ({ changes: 1 }) })) }));
     vi.mocked(getDb).mockResolvedValue({ select, update, insert } as never);
 
     await initializeOperationalRecovery();

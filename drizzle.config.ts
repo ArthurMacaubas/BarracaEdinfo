@@ -1,15 +1,12 @@
 import { defineConfig } from "drizzle-kit";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is required to run drizzle commands");
-}
+const databaseFile = process.env.DATABASE_FILE ?? "./data/barraca-agostina.sqlite";
 
 export default defineConfig({
   schema: "./drizzle/schema.ts",
-  out: "./drizzle",
-  dialect: "mysql",
+  out: "./drizzle/migrations",
+  dialect: "sqlite",
   dbCredentials: {
-    url: connectionString,
+    url: databaseFile,
   },
 });

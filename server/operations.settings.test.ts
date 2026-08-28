@@ -5,59 +5,30 @@ vi.mock("./db", () => ({ getDb: vi.fn() }));
 import { getDb } from "./db";
 import { saveSetting } from "./operations";
 
+function createSettingsDb() {
+  const conflict = vi.fn(() => ({ run: () => ({ changes: 1 }) }));
+  const settingValues = vi.fn(() => ({ onConflictDoUpdate: conflict }));
+  const eventValues = vi.fn(() => ({ run: () => ({ changes: 1 }) }));
+  const insert = vi.fn().mockReturnValueOnce({ values: settingValues }).mockReturnValueOnce({ values: eventValues });
+  return { conflict, settingValues, eventValues, insert };
+}
+
 describe("configuração do PIX", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("grava o código copia e cola usando a chave pix_payload", async () => {
-    const upsert = vi.fn().mockResolvedValue(undefined);
-    const settingValues = vi.fn(() => ({ onDuplicateKeyUpdate: upsert }));
-    const eventValues = vi.fn().mockResolvedValue(undefined);
-    const insert = vi.fn().mockReturnValueOnce({ values: settingValues }).mockReturnValueOnce({ values: eventValues });
-    vi.mocked(getDb).mockResolvedValue({ insert } as never);
+  it.each([
+    ["pix_payload", "PIX-COPIA-COLA-VALIDO"],
+    ["public_pix_enabled", "false"],
+    ["public_pix_manual_display", "true"],
+    ["sponsor_transition_ms", "900"],
+  ])("persiste a configuração %s", async (key, value) => {
+    const db = createSettingsDb();
+    vi.mocked(getDb).mockResolvedValue({ insert: db.insert } as never);
 
-    await saveSetting("pix_payload", "PIX-COPIA-COLA-VALIDO");
+    await saveSetting(key, value);
 
-    expect(settingValues).toHaveBeenCalledWith({ key: "pix_payload", value: "PIX-COPIA-COLA-VALIDO" });
-    expect(upsert).toHaveBeenCalledWith({ set: { value: "PIX-COPIA-COLA-VALIDO" } });
-    expect(eventValues).toHaveBeenCalledWith(expect.objectContaining({ type: "SETTING_UPDATED" }));
-  });
-
-  it("persiste a chave que controla a visibilidade do QR Code no painel público", async () => {
-    const upsert = vi.fn().mockResolvedValue(undefined);
-    const settingValues = vi.fn(() => ({ onDuplicateKeyUpdate: upsert }));
-    const eventValues = vi.fn().mockResolvedValue(undefined);
-    const insert = vi.fn().mockReturnValueOnce({ values: settingValues }).mockReturnValueOnce({ values: eventValues });
-    vi.mocked(getDb).mockResolvedValue({ insert } as never);
-
-    await saveSetting("public_pix_enabled", "false");
-
-    expect(settingValues).toHaveBeenCalledWith({ key: "public_pix_enabled", value: "false" });
-    expect(upsert).toHaveBeenCalledWith({ set: { value: "false" } });
-  });
-
-  it("persiste o comando manual do caixa para mostrar o QR PIX no segundo monitor", async () => {
-    const upsert = vi.fn().mockResolvedValue(undefined);
-    const settingValues = vi.fn(() => ({ onDuplicateKeyUpdate: upsert }));
-    const eventValues = vi.fn().mockResolvedValue(undefined);
-    const insert = vi.fn().mockReturnValueOnce({ values: settingValues }).mockReturnValueOnce({ values: eventValues });
-    vi.mocked(getDb).mockResolvedValue({ insert } as never);
-
-    await saveSetting("public_pix_manual_display", "true");
-
-    expect(settingValues).toHaveBeenCalledWith({ key: "public_pix_manual_display", value: "true" });
-    expect(upsert).toHaveBeenCalledWith({ set: { value: "true" } });
-  });
-
-  it("persiste a duração configurada do carrossel de patrocinadores", async () => {
-    const upsert = vi.fn().mockResolvedValue(undefined);
-    const settingValues = vi.fn(() => ({ onDuplicateKeyUpdate: upsert }));
-    const eventValues = vi.fn().mockResolvedValue(undefined);
-    const insert = vi.fn().mockReturnValueOnce({ values: settingValues }).mockReturnValueOnce({ values: eventValues });
-    vi.mocked(getDb).mockResolvedValue({ insert } as never);
-
-    await saveSetting("sponsor_transition_ms", "900");
-
-    expect(settingValues).toHaveBeenCalledWith({ key: "sponsor_transition_ms", value: "900" });
-    expect(upsert).toHaveBeenCalledWith({ set: { value: "900" } });
+    expect(db.settingValues).toHaveBeenCalledWith(expect.objectContaining({ key, value, updatedAt: expect.any(Date) }));
+    expect(db.conflict).toHaveBeenCalledWith(expect.objectContaining({ set: expect.objectContaining({ value, updatedAt: expect.any(Date) }) }));
+    expect(db.eventValues).toHaveBeenCalledWith(expect.objectContaining({ type: "SETTING_UPDATED" }));
   });
 });
