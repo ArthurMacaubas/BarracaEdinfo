@@ -227,4 +227,4 @@
 - [x] Adaptar operações, autenticação e testes às semânticas SQLite
 - [x] Criar procedimento de importação opcional de dados MySQL para SQLite
 - [x] Atualizar os guias de execução, backup e restauração locais
-- [ ] Validar a migração completa e sincronizar a versão SQLite no GitHub
+- [x] Validar a migração completa e sincronizar a versão SQLite no GitHub
