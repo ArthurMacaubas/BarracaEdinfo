@@ -243,3 +243,4 @@
 - [x] Substituir comandos e instruções de pnpm por npm
 - [x] Validar a instalação, testes e operação com Arduino Uno usando npm
 - [x] Publicar e sincronizar a adaptação de Arduino Uno e npm
+- [x] Confirmar firmware do Arduino Uno com dois relés independentes e validação final do projeto
