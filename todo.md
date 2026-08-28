@@ -217,3 +217,7 @@
 - [x] Exibir carregamento e feedback ao gerar comprovantes PDF
 - [x] Validar os gráficos, o indicador do Arduino e a geração de PDF
 - [x] Verificar a interface atual e criar um ponto de verificação confirmado
+- [x] Avaliar banco em arquivo local para execução offline e documentar a recomendação
+- [x] Auditar e remover somente arquivos comprovadamente não utilizados
+- [x] Validar o projeto após a limpeza
+- [ ] Sincronizar a limpeza validada com o GitHub
