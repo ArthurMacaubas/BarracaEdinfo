@@ -247,4 +247,4 @@
 - [x] Adaptar o firmware de dois relés para ESP-WROOM-32
 - [x] Atualizar documentação, pinos e configuração serial do ESP-WROOM-32
 - [x] Validar o protocolo do firmware e o projeto após a troca do controlador
-- [ ] Publicar e sincronizar a atualização do ESP-WROOM-32 com o GitHub
+- [x] Publicar e sincronizar a atualização do ESP-WROOM-32 com o GitHub
