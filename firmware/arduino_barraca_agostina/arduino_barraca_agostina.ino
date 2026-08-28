@@ -1,8 +1,12 @@
 /*
- * Placa-alvo: Arduino Uno (ATmega328P)
- * Barraca Agostina — controlador de fita LED e sirene por relés
+ * Placa-alvo: ESP-WROOM-32 (Arduino core para ESP32)
+ * Barraca Agostina — controlador de fita LED e sirene por dois relés
  *
- * Protocolo serial (115200 bps, fim de linha \n):
+ * Relé 1: GPIO18 -> fita LED
+ * Relé 2: GPIO19 -> sirene
+ * Comunicação: USB/UART0, 115200 bps, fim de linha \n
+ *
+ * Protocolo serial:
  *   chave|LED_ON|duracaoEmMs
  *   chave|LED_OFF|0
  *   chave|SIREN_ON|duracaoEmMs
@@ -13,18 +17,24 @@
  *
  * Resposta de sucesso: ACK|chave
  * Resposta de erro:    NACK|chave|motivo
+ *
+ * Instalação elétrica:
+ *   - Use módulo de relé compatível com lógica de 3,3 V.
+ *   - Alimente o módulo conforme sua especificação e una os GNDs.
+ *   - Nunca aplique 5 V diretamente a um GPIO do ESP32.
+ *   - Nunca conecte cargas de rede diretamente à placa.
  */
 
-constexpr byte LED_RELAY_PIN = 8;
-constexpr byte SIREN_RELAY_PIN = 9;
-// A maioria dos módulos de relé de 5 V é acionada em nível baixo (LOW).
-// Altere para false somente se os seus relés forem acionados em nível alto.
+constexpr uint8_t LED_RELAY_PIN = 18;
+constexpr uint8_t SIREN_RELAY_PIN = 19;
+// A maioria dos módulos de relé é acionada em nível baixo (LOW).
+// Altere para false somente se o seu módulo for acionado em nível alto.
 constexpr bool RELAY_ACTIVE_LOW = true;
 constexpr unsigned long DEFAULT_ALERT_MS = 900;
 constexpr unsigned long MAX_DURATION_MS = 5000;
 
 char buffer[96];
-byte bufferLength = 0;
+uint8_t bufferLength = 0;
 unsigned long ledRelayUntil = 0;
 unsigned long sirenRelayUntil = 0;
 
@@ -32,16 +42,16 @@ bool timeReached(unsigned long deadline) {
   return deadline != 0 && static_cast<long>(millis() - deadline) >= 0;
 }
 
-void setRelay(byte pin, bool enabled) {
+void setRelay(uint8_t pin, bool enabled) {
   const bool outputHigh = RELAY_ACTIVE_LOW ? !enabled : enabled;
   digitalWrite(pin, outputHigh ? HIGH : LOW);
 }
 
-bool isRelayEnabled(byte pin) {
+bool isRelayEnabled(uint8_t pin) {
   return RELAY_ACTIVE_LOW ? digitalRead(pin) == LOW : digitalRead(pin) == HIGH;
 }
 
-void reportRelayState(const char* relay, byte pin) {
+void reportRelayState(const char* relay, uint8_t pin) {
   Serial.print(F("STATE|"));
   Serial.print(relay);
   Serial.print('|');
@@ -162,7 +172,7 @@ void setup() {
   setRelay(LED_RELAY_PIN, false);
   setRelay(SIREN_RELAY_PIN, false);
   Serial.begin(115200);
-  Serial.println(F("READY|barraca-agostina"));
+  Serial.println(F("READY|barraca-agostina-esp32"));
 }
 
 void loop() {
