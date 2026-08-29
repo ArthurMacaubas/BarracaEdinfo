@@ -273,4 +273,4 @@
 - [x] Adicionar configuração persistente para duração da sirene
 - [x] Aplicar a duração configurada nos acionamentos automático e manual
 - [x] Validar limites, interface, testes, banco e build da configuração da sirene
-- [ ] Sincronizar a configuração da sirene com o GitHub
+- [x] Sincronizar a configuração da sirene com o GitHub
