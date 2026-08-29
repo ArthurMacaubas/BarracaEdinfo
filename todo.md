@@ -277,3 +277,7 @@
 - [x] Corrigir a visibilidade/localização do campo de duração da sirene no painel administrativo
 - [x] Validar visualmente o campo, carregamento do valor salvo, testes e build
 - [x] Sincronizar a correção de visibilidade da duração da sirene com o GitHub
+- [x] Corrigir erro de Storage ausente ao enviar imagem de patrocinador no modo offline local
+- [x] Permitir cadastro de imagem local sem depender de BUILT_IN_FORGE_API_URL e BUILT_IN_FORGE_API_KEY
+- [x] Validar patrocinadores, testes, SQLite e build após o fallback local
+- [ ] Sincronizar a correção do Storage offline com o GitHub

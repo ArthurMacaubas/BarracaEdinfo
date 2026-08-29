@@ -4,6 +4,10 @@
 
 import { ENV } from "./_core/env";
 
+export function isStorageConfigured() {
+  return Boolean(ENV.forgeApiUrl && ENV.forgeApiKey);
+}
+
 function getForgeConfig() {
   const forgeUrl = ENV.forgeApiUrl;
   const forgeKey = ENV.forgeApiKey;

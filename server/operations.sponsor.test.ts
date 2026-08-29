@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./db", () => ({ getDb: vi.fn() }));
+vi.mock("./storage", () => ({ isStorageConfigured: vi.fn(() => false), storagePut: vi.fn() }));
 import { getDb } from "./db";
 import { deleteSponsor, reorderSponsors, saveSponsor } from "./operations";
 
@@ -20,6 +21,17 @@ describe("saveSponsor", () => {
     await saveSponsor({ name: "Padaria da Praça", imageUrl: "https://example.com/logo.png", backgroundColor: "#123abc", enabled: true, sortOrder: 2 });
 
     expect(saved[0]).toMatchObject({ name: "Padaria da Praça", backgroundColor: "#123abc", enabled: true, sortOrder: 2 });
+  });
+
+  it("salva imagem enviada diretamente no modo offline sem exigir Storage hospedado", async () => {
+    const saved: unknown[] = [];
+    const insert = vi.fn(() => ({ values: (values: unknown) => { saved.push(values); return { returning: () => Promise.resolve([{ id: 21 }]), run: () => ({ changes: 1 }) }; } }));
+    vi.mocked(getDb).mockResolvedValue({ insert } as never);
+
+    const imageData = "data:image/png;base64,AA==";
+    await saveSponsor({ name: "Marca local", imageData, backgroundColor: "#fffaf0", enabled: true, sortOrder: 1 });
+
+    expect(saved[0]).toMatchObject({ name: "Marca local", imageUrl: imageData, enabled: true });
   });
 
   it("persiste a nova ordem de todos os patrocinadores", async () => {

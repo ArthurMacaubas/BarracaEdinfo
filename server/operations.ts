@@ -14,7 +14,7 @@ import {
 import { getDb } from "./db";
 import { hardwareController } from "./hardware";
 import { applyPixAmount, canApplyPixAmount } from "./pixPayload";
-import { storagePut } from "./storage";
+import { isStorageConfigured, storagePut } from "./storage";
 
 export const ORDER_STATUSES = ["NEW", "PREPARING", "READY", "DELIVERED", "CANCELLED"] as const;
 export const PAYMENT_METHODS = ["PIX", "CASH", "CARD"] as const;
@@ -477,6 +477,9 @@ async function uploadSponsorImage(imageData: string) {
   const data = Buffer.from(match[2], "base64");
   if (data.length > 2_500_000) throw new Error("A imagem do patrocinador deve ter no máximo 2,5 MB.");
   const extension = match[1].split("/")[1] === "jpeg" ? "jpg" : match[1].split("/")[1];
+  if (!isStorageConfigured()) {
+    return { key: `local-sponsor-${Date.now()}.${extension}`, url: imageData };
+  }
   return storagePut(`sponsors/patrocinador.${extension}`, data, match[1]);
 }
 
