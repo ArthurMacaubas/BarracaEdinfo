@@ -266,3 +266,7 @@
 - [x] Atualizar o pnpm-lock.yaml para refletir package.json e recuperar o build gerenciado
 - [x] Validar check, testes, build e conexão serial simulada
 - [x] Sincronizar a correção da conexão COM25 e do lockfile com o GitHub
+- [x] Corrigir ou documentar o erro Failed to fetch ao verificar o Arduino pela interface local
+- [x] Validar que o botão de conectividade é usado em http://localhost e não no domínio hospedado
+- [x] Desativar analytics quando VITE_ANALYTICS_ENDPOINT e VITE_ANALYTICS_WEBSITE_ID não estiverem configurados localmente
+- [x] Validar que o frontend offline não gera URI literal com placeholders de ambiente
