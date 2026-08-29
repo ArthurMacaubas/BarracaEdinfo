@@ -35,16 +35,16 @@ describe("RelayControls", () => {
     expect(screen.getByText("Relé da sirene")).toBeTruthy();
     expect(screen.getByText("CONTROLADOR OFFLINE")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Ligar fita" }).hasAttribute("disabled")).toBe(true);
-    expect(screen.getByRole("button", { name: "Tocar 1 s" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "Tocar duração configurada" }).hasAttribute("disabled")).toBe(true);
   });
 
   it("envia comandos manuais e reflete o estado atualizado retornado pela ponte", () => {
     mocks.status = { hardware: { state: "ONLINE", relays: { led: "OFF", siren: "OFF" } } };
     const view = render(<RelayControls />);
     fireEvent.click(screen.getByRole("button", { name: "Ligar fita" }));
-    fireEvent.click(screen.getByRole("button", { name: "Tocar 1 s" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tocar duração configurada" }));
     expect(mocks.ledMutate).toHaveBeenCalledWith({ enabled: true });
-    expect(mocks.sirenMutate).toHaveBeenCalledWith({ enabled: true, durationMs: 1_000 });
+    expect(mocks.sirenMutate).toHaveBeenCalledWith({ enabled: true });
     expect(mocks.invalidate).toHaveBeenCalledTimes(2);
 
     mocks.status = { hardware: { state: "ONLINE", relays: { led: "ON", siren: "ON" } } };

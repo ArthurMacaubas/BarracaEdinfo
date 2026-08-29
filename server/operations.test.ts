@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateOrderTotal, canConfirmPixPayment, canTransitionOrder, goalProgress, isDuplicateRequestKey, isPaymentMethod, PIX_CAMPAIGN_WINDOW_MS, shouldTriggerGoal } from "./operations";
+import { calculateOrderTotal, canConfirmPixPayment, canTransitionOrder, DEFAULT_SIREN_DURATION_MS, goalProgress, isDuplicateRequestKey, isPaymentMethod, MAX_SIREN_DURATION_MS, MIN_SIREN_DURATION_MS, normalizeSirenDuration, PIX_CAMPAIGN_WINDOW_MS, shouldTriggerGoal } from "./operations";
 
 describe("ciclo de pedidos", () => {
   it("permite somente as transições operacionais esperadas", () => {
@@ -40,5 +40,14 @@ describe("ciclo de pedidos", () => {
 
   it("limita a campanha PIX automática a vinte segundos", () => {
     expect(PIX_CAMPAIGN_WINDOW_MS).toBe(20_000);
+  });
+
+  it("normaliza a duração da sirene dentro dos limites seguros", () => {
+    expect(DEFAULT_SIREN_DURATION_MS).toBe(1_000);
+    expect(normalizeSirenDuration(undefined)).toBe(DEFAULT_SIREN_DURATION_MS);
+    expect(normalizeSirenDuration("2500")).toBe(2_500);
+    expect(normalizeSirenDuration(100)).toBe(MIN_SIREN_DURATION_MS);
+    expect(normalizeSirenDuration(9_000)).toBe(MAX_SIREN_DURATION_MS);
+    expect(normalizeSirenDuration("invalido")).toBe(DEFAULT_SIREN_DURATION_MS);
   });
 });

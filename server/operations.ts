@@ -21,6 +21,9 @@ export const PAYMENT_METHODS = ["PIX", "CASH", "CARD"] as const;
 export const GOAL_ALERT_WINDOW_MS = 8_000;
 export const GOAL_SIREN_DELAY_MS = 1_000;
 export const PIX_CAMPAIGN_WINDOW_MS = 20_000;
+export const DEFAULT_SIREN_DURATION_MS = 1_000;
+export const MIN_SIREN_DURATION_MS = 300;
+export const MAX_SIREN_DURATION_MS = 5_000;
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
@@ -58,6 +61,18 @@ export function goalProgress(totalSales: number, baselineSales: number) {
 
 export function getSetting(settings: Array<{ key: string; value: string }>, key: string, fallback = "") {
   return settings.find(setting => setting.key === key)?.value ?? fallback;
+}
+
+export function normalizeSirenDuration(value: unknown, fallback = DEFAULT_SIREN_DURATION_MS) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(MAX_SIREN_DURATION_MS, Math.max(MIN_SIREN_DURATION_MS, Math.round(parsed)));
+}
+
+export async function getConfiguredSirenDuration() {
+  const db = await getDb();
+  const rows = await db.select().from(operationSettings).where(eq(operationSettings.key, "siren_duration_ms")).limit(1);
+  return normalizeSirenDuration(rows[0]?.value);
 }
 
 export function countGoalUnits(
@@ -117,7 +132,7 @@ async function dispatchUnitGoalSiren(alertId: number) {
   const alert = current[0];
   if (!alert || alert.sirenSentAt) return;
 
-  const accepted = hardwareController.triggerAlert(`unit-goal-${alert.id}`, 900);
+  const accepted = hardwareController.triggerAlert(`unit-goal-${alert.id}`, await getConfiguredSirenDuration());
   if (!accepted.accepted) return;
 
   await db.update(unitGoalAlerts).set({ sirenSentAt: new Date() }).where(eq(unitGoalAlerts.id, alert.id)).run();

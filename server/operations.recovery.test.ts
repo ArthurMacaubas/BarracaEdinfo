@@ -5,7 +5,7 @@ vi.mock("./hardware", () => ({ hardwareController: { triggerAlert: vi.fn(() => (
 
 import { getDb } from "./db";
 import { hardwareController } from "./hardware";
-import { initializeOperationalRecovery } from "./operations";
+import { DEFAULT_SIREN_DURATION_MS, initializeOperationalRecovery } from "./operations";
 
 describe("recuperação de alertas na inicialização", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -46,7 +46,7 @@ describe("recuperação de alertas na inicialização", () => {
     await initializeOperationalRecovery();
     await vi.runAllTimersAsync();
 
-    expect(hardwareController.triggerAlert).toHaveBeenCalledWith("unit-goal-12", 900);
+    expect(hardwareController.triggerAlert).toHaveBeenCalledWith("unit-goal-12", DEFAULT_SIREN_DURATION_MS);
     expect(where).toHaveBeenCalledOnce();
     vi.useRealTimers();
   });

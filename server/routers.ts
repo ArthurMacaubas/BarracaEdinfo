@@ -3,7 +3,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
 import { hardwareController } from "./hardware";
-import { confirmPixPayment, createOrder, createOrUpdateProduct, deleteSponsor, getOperationalSnapshot, listAvailableProducts, listOrderHistory, listPendingPixPayments, PAYMENT_METHODS, recordEvent, reorderSponsors, resetSalesGoalCycle, saveSetting, saveSponsor, saveUnitGoal, setUnitGoalConcurrency, setUnitGoalStatus } from "./operations";
+import { confirmPixPayment, createOrder, createOrUpdateProduct, deleteSponsor, getConfiguredSirenDuration, getOperationalSnapshot, listAvailableProducts, listOrderHistory, listPendingPixPayments, MAX_SIREN_DURATION_MS, PAYMENT_METHODS, recordEvent, reorderSponsors, resetSalesGoalCycle, saveSetting, saveSponsor, saveUnitGoal, setUnitGoalConcurrency, setUnitGoalStatus } from "./operations";
 
 export const appRouter = router({
   system: systemRouter,
@@ -28,9 +28,9 @@ export const appRouter = router({
     status: publicProcedure.query(async () => { const database = Boolean(await getDb()); return { database: database ? "ONLINE" : "OFFLINE", hardware: hardwareController.getSnapshot(), serverTime: new Date() }; }),
     connectHardware: publicProcedure.mutation(async () => { await hardwareController.connect(); return hardwareController.getSnapshot(); }),
     disconnectHardware: publicProcedure.mutation(async () => { await hardwareController.disconnect(); return hardwareController.getSnapshot(); }),
-    testHardware: publicProcedure.mutation(async () => { const accepted = hardwareController.triggerAlert(`manual-test-${Date.now()}`, 700); await recordEvent("HARDWARE_TEST_REQUESTED", "HARDWARE", undefined, accepted); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
+    testHardware: publicProcedure.mutation(async () => { const durationMs = await getConfiguredSirenDuration(); const accepted = hardwareController.triggerAlert(`manual-test-${Date.now()}`, durationMs); await recordEvent("HARDWARE_TEST_REQUESTED", "HARDWARE", undefined, { durationMs, ...accepted }); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
     setLedRelay: publicProcedure.input(z.object({ enabled: z.boolean() })).mutation(async ({ input }) => { const accepted = input.enabled ? hardwareController.turnLedOn(`manual-led-on-${Date.now()}`) : hardwareController.turnLedOff(`manual-led-off-${Date.now()}`); await recordEvent("LED_RELAY_REQUESTED", "HARDWARE", undefined, { enabled: input.enabled, ...accepted }); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
-    setSirenRelay: publicProcedure.input(z.object({ enabled: z.boolean(), durationMs: z.number().int().min(300).max(3_000).optional() })).mutation(async ({ input }) => { const accepted = input.enabled ? hardwareController.turnSirenOn(`manual-siren-on-${Date.now()}`, input.durationMs ?? 1_000) : hardwareController.turnSirenOff(`manual-siren-off-${Date.now()}`); await recordEvent("SIREN_RELAY_REQUESTED", "HARDWARE", undefined, { enabled: input.enabled, durationMs: input.durationMs, ...accepted }); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
+    setSirenRelay: publicProcedure.input(z.object({ enabled: z.boolean(), durationMs: z.number().int().min(300).max(MAX_SIREN_DURATION_MS).optional() })).mutation(async ({ input }) => { const durationMs = input.durationMs ?? await getConfiguredSirenDuration(); const accepted = input.enabled ? hardwareController.turnSirenOn(`manual-siren-on-${Date.now()}`, durationMs) : hardwareController.turnSirenOff(`manual-siren-off-${Date.now()}`); await recordEvent("SIREN_RELAY_REQUESTED", "HARDWARE", undefined, { enabled: input.enabled, durationMs, ...accepted }); return { accepted, snapshot: hardwareController.getSnapshot() }; }),
   }),
 });
 

@@ -13,7 +13,7 @@ function createSettingsDb() {
   return { conflict, settingValues, eventValues, insert };
 }
 
-describe("configuração do PIX", () => {
+describe("configuração do PIX e hardware", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it.each([
@@ -21,6 +21,7 @@ describe("configuração do PIX", () => {
     ["public_pix_enabled", "false"],
     ["public_pix_manual_display", "true"],
     ["sponsor_transition_ms", "900"],
+    ["siren_duration_ms", "2500"],
   ])("persiste a configuração %s", async (key, value) => {
     const db = createSettingsDb();
     vi.mocked(getDb).mockResolvedValue({ insert: db.insert } as never);

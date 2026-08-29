@@ -270,3 +270,7 @@
 - [x] Validar que o botão de conectividade é usado em http://localhost e não no domínio hospedado
 - [x] Desativar analytics quando VITE_ANALYTICS_ENDPOINT e VITE_ANALYTICS_WEBSITE_ID não estiverem configurados localmente
 - [x] Validar que o frontend offline não gera URI literal com placeholders de ambiente
+- [x] Adicionar configuração persistente para duração da sirene
+- [x] Aplicar a duração configurada nos acionamentos automático e manual
+- [x] Validar limites, interface, testes, banco e build da configuração da sirene
+- [ ] Sincronizar a configuração da sirene com o GitHub
