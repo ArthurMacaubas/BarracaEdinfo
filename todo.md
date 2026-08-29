@@ -248,3 +248,7 @@
 - [x] Atualizar documentação, pinos e configuração serial do ESP-WROOM-32
 - [x] Validar o protocolo do firmware e o projeto após a troca do controlador
 - [x] Publicar e sincronizar a atualização do ESP-WROOM-32 com o GitHub
+- [x] Reverter o firmware do ESP-WROOM-32 para Arduino Uno/ATmega328P com dois relés
+- [x] Atualizar documentação, mapeamento de pinos e configuração serial para Arduino Uno
+- [x] Validar código, testes, build e banco após a reversão para Arduino Uno
+- [x] Sincronizar a versão Arduino Uno final com o GitHub

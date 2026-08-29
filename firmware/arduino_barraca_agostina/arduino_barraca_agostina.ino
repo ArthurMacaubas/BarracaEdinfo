@@ -1,10 +1,10 @@
 /*
- * Placa-alvo: ESP-WROOM-32 (Arduino core para ESP32)
+ * Placa-alvo: Arduino Uno (ATmega328P)
  * Barraca Agostina — controlador de fita LED e sirene por dois relés
  *
- * Relé 1: GPIO18 -> fita LED
- * Relé 2: GPIO19 -> sirene
- * Comunicação: USB/UART0, 115200 bps, fim de linha \n
+ * Relé 1: D8 -> fita LED
+ * Relé 2: D9 -> sirene
+ * Comunicação: USB/Serial, 115200 bps, fim de linha \n
  *
  * Protocolo serial:
  *   chave|LED_ON|duracaoEmMs
@@ -19,14 +19,16 @@
  * Resposta de erro:    NACK|chave|motivo
  *
  * Instalação elétrica:
- *   - Use módulo de relé compatível com lógica de 3,3 V.
+ *   - Use um módulo de relé compatível com sinal de 5 V.
  *   - Alimente o módulo conforme sua especificação e una os GNDs.
- *   - Nunca aplique 5 V diretamente a um GPIO do ESP32.
+ *   - Nunca alimente a fita LED ou a sirene pelos pinos digitais.
  *   - Nunca conecte cargas de rede diretamente à placa.
  */
 
-constexpr uint8_t LED_RELAY_PIN = 18;
-constexpr uint8_t SIREN_RELAY_PIN = 19;
+#include <Arduino.h>
+
+constexpr uint8_t LED_RELAY_PIN = 8;
+constexpr uint8_t SIREN_RELAY_PIN = 9;
 // A maioria dos módulos de relé é acionada em nível baixo (LOW).
 // Altere para false somente se o seu módulo for acionado em nível alto.
 constexpr bool RELAY_ACTIVE_LOW = true;
@@ -172,7 +174,7 @@ void setup() {
   setRelay(LED_RELAY_PIN, false);
   setRelay(SIREN_RELAY_PIN, false);
   Serial.begin(115200);
-  Serial.println(F("READY|barraca-agostina-esp32"));
+  Serial.println(F("READY|barraca-agostina-arduino-uno"));
 }
 
 void loop() {
