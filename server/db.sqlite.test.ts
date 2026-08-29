@@ -5,10 +5,11 @@ import { afterAll, describe, expect, it } from "vitest";
 const testDatabaseFile = resolve(process.cwd(), "tmp", `sqlite-integration-${process.pid}.sqlite`);
 process.env.DATABASE_FILE = testDatabaseFile;
 
-const { databaseFile, getDb } = await import("./db");
+const { databaseFile, closeDb, getDb } = await import("./db");
 const { operationSettings } = await import("../drizzle/schema");
 
 afterAll(() => {
+  closeDb();
   rmSync(testDatabaseFile, { force: true });
   rmSync(`${testDatabaseFile}-shm`, { force: true });
   rmSync(`${testDatabaseFile}-wal`, { force: true });

@@ -257,4 +257,7 @@
 - [x] Corrigir conflito de peer dependency entre Vite 7 e @builder.io/vite-plugin-jsx-loc no npm
 - [x] Tornar os scripts npm de desenvolvimento multiplataforma no Windows
 - [x] Validar npm install, db:verify, check, testes e build após a correção
-- [ ] Sincronizar a correção de instalação e scripts com o GitHub
+- [x] Sincronizar a correção de instalação e scripts com o GitHub
+- [x] Corrigir erro EPERM na remoção do banco SQLite temporário no Windows
+- [x] Validar a limpeza do SQLite, suíte de testes, build e banco local
+- [x] Sincronizar a correção do teste SQLite com o GitHub

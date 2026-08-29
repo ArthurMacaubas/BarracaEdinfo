@@ -48,6 +48,14 @@ export async function getDb() {
   }
 }
 
+/** Fecha o cliente SQLite e libera o arquivo local para backup, testes e encerramento limpo. */
+export function closeDb() {
+  client?.close();
+  client = null;
+  _db = null;
+  initialization = null;
+}
+
 /** Expõe o cliente SQLite apenas para rotinas locais de manutenção, como importação e backup. */
 export async function getSqliteClient() {
   await getDb();
