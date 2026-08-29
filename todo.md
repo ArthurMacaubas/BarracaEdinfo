@@ -274,3 +274,6 @@
 - [x] Aplicar a duração configurada nos acionamentos automático e manual
 - [x] Validar limites, interface, testes, banco e build da configuração da sirene
 - [x] Sincronizar a configuração da sirene com o GitHub
+- [x] Corrigir a visibilidade/localização do campo de duração da sirene no painel administrativo
+- [x] Validar visualmente o campo, carregamento do valor salvo, testes e build
+- [ ] Sincronizar a correção de visibilidade da duração da sirene com o GitHub
