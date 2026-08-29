@@ -4,6 +4,7 @@ type PendingCommand = { resolve: () => void; reject: (error: Error) => void; tim
 type SerialPortInstance = import("serialport").SerialPort;
 const relayByWireName: Record<string, RelayName | undefined> = { LED: "led", SIREN: "siren" };
 export type SerialPortCandidate = { path: string; manufacturer?: string; vendorId?: string; productId?: string };
+const ARDUINO_RESET_WAIT_MS = 2500;
 
 export function chooseArduinoSerialPort(ports: SerialPortCandidate[]) {
   return ports.find(port => /arduino|ch340|cp210|ftdi/i.test(`${port.manufacturer ?? ""} ${port.vendorId ?? ""} ${port.productId ?? ""}`))?.path
@@ -19,24 +20,53 @@ export function parseRelayStateLine(line: string): { relay: RelayName; state: Re
 
 export class SerialHardwareAdapter implements HardwareAdapter {
   private port: SerialPortInstance | undefined;
+  private opening: Promise<void> | undefined;
   private buffer = "";
+  private connectionLostListener: ((error: Error) => void) | undefined;
   private pending = new Map<string, PendingCommand>();
   private relays: Record<RelayName, RelayState> = { led: "UNKNOWN", siren: "UNKNOWN" };
 
   constructor(private readonly config: { path: string; baudRate: number }) {}
   getRelayStates() { return { ...this.relays }; }
 
+  onConnectionLost(listener: (error: Error) => void) {
+    this.connectionLostListener = listener;
+    return () => { if (this.connectionLostListener === listener) this.connectionLostListener = undefined; };
+  }
+
   async connect() {
     if (this.port?.isOpen) return;
+    if (this.opening) return this.opening;
+    this.opening = this.openPort().finally(() => { this.opening = undefined; });
+    return this.opening;
+  }
+
+  private async openPort() {
+    if (this.port) {
+      const previous = this.port;
+      this.port = undefined;
+      if (previous.isOpen) await new Promise<void>(resolve => previous.close(() => resolve()));
+    }
     const { SerialPort } = await import("serialport");
     const port = new SerialPort({ path: this.config.path, baudRate: this.config.baudRate, autoOpen: false });
     port.on("data", chunk => this.handleData(chunk.toString()));
-    port.on("error", error => this.rejectAll(error));
+    port.on("error", error => this.handleConnectionError(error));
     await new Promise<void>((resolve, reject) => port.open(error => error ? reject(error) : resolve()));
     this.port = port;
+    // Abrir a porta normalmente reinicia o Uno pelo DTR; aguarde o bootloader e o setup.
+    await new Promise<void>(resolve => setTimeout(resolve, ARDUINO_RESET_WAIT_MS));
+    if (this.port !== port || !port.isOpen) throw new Error("A porta serial foi perdida durante o reinício do Arduino.");
+  }
+
+  private handleConnectionError(error: Error) {
+    if (this.port) this.port = undefined;
+    this.rejectAll(error);
+    this.connectionLostListener?.(error);
   }
 
   async disconnect() {
+    const opening = this.opening;
+    if (opening) await opening.catch(() => undefined);
     const port = this.port;
     this.port = undefined;
     this.relays = { led: "UNKNOWN", siren: "UNKNOWN" };

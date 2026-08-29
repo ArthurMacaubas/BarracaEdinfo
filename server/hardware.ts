@@ -14,6 +14,7 @@ export interface HardwareAdapter {
   disconnect(): Promise<void>;
   send(command: HardwareCommand): Promise<void>;
   getRelayStates?(): Partial<Record<RelayName, RelayState>>;
+  onConnectionLost?(listener: (error: Error) => void): () => void;
 }
 
 class UnavailableHardwareAdapter implements HardwareAdapter {
@@ -37,8 +38,25 @@ export class HardwareController {
   private relays: Record<RelayName, RelayState> = { led: "UNKNOWN", siren: "UNKNOWN" };
   private relayTimers: Partial<Record<RelayName, ReturnType<typeof setTimeout>>> = {};
   private relayStatusTimer: ReturnType<typeof setInterval> | undefined;
+  private removeAdapterConnectionListener: (() => void) | undefined;
+  private connecting: Promise<void> | undefined;
 
-  configure(adapter: HardwareAdapter) { this.adapter = adapter; this.resetRelayState(); this.stopRelayStatePolling(); }
+  configure(adapter: HardwareAdapter) {
+    this.removeAdapterConnectionListener?.();
+    this.adapter = adapter;
+    this.removeAdapterConnectionListener = adapter.onConnectionLost?.(error => this.handleConnectionLost(error));
+    this.resetRelayState();
+    this.stopRelayStatePolling();
+  }
+
+  private handleConnectionLost(error: Error) {
+    if (this.state === "OFFLINE" && !this.processing) return;
+    this.state = "OFFLINE";
+    this.resetRelayState();
+    this.stopRelayStatePolling();
+    this.log("error", `Conexão serial perdida: ${error.message}`);
+    this.scheduleReconnect();
+  }
   getSnapshot() { this.syncAdapterRelayStates(); return { state: this.state, queued: this.queue.length, processing: this.processing, relays: { ...this.relays }, logs: this.logs.slice(0, 12) }; }
 
   private log(level: HardwareLog["level"], message: string) { this.logs.unshift({ at: new Date(), level, message }); this.logs = this.logs.slice(0, 60); void this.persistEvent(level, message); }
@@ -56,7 +74,35 @@ export class HardwareController {
   private async persistCommand(command: HardwareCommand, status: "QUEUED" | "SENT" | "ACK" | "FAILED") { try { const db = await getDb(); if (!db) return; if (status === "QUEUED") { await db.insert(hardwareCommands).values({ commandKey: command.key, type: command.type, payload: JSON.stringify(command.payload ?? {}), status }).run(); return; } await db.update(hardwareCommands).set({ status, attempts: sql`${hardwareCommands.attempts} + 1`, updatedAt: new Date() }).where(eq(hardwareCommands.commandKey, command.key)).run(); } catch {} }
 
   private scheduleReconnect() { if (!this.shouldReconnect || this.reconnectTimer) return; const delay = this.reconnectDelayMs; this.reconnectDelayMs = Math.min(this.reconnectDelayMs * 2, 15000); this.log("info", `Nova tentativa de conexão em ${Math.round(delay / 1000)} segundo(s).`); this.reconnectTimer = setTimeout(() => { this.reconnectTimer = undefined; void this.connect(); }, delay); }
-  async connect() { if (this.state === "ONLINE") return; this.shouldReconnect = true; this.state = "RECONNECTING"; this.log("info", "Tentando conectar ao controlador físico."); try { await this.adapter.connect(); this.state = "ONLINE"; this.reconnectDelayMs = 1000; this.log("info", "Controlador físico conectado."); if (this.adapter.getRelayStates) { this.enqueue({ key: `relay-status-${Date.now()}`, type: "STATUS", timeoutMs: 2500 }); this.startRelayStatePolling(); } void this.processQueue(); } catch (error) { this.state = "OFFLINE"; this.resetRelayState(); this.stopRelayStatePolling(); this.log("warn", `Controlador indisponível: ${error instanceof Error ? error.message : "erro desconhecido"}`); this.scheduleReconnect(); } }
+  async connect() {
+    if (this.state === "ONLINE") return;
+    if (this.connecting) return this.connecting;
+    this.connecting = this.connectInternal().finally(() => { this.connecting = undefined; });
+    return this.connecting;
+  }
+
+  private async connectInternal() {
+    this.shouldReconnect = true;
+    this.state = "RECONNECTING";
+    this.log("info", "Tentando conectar ao controlador físico.");
+    try {
+      await this.adapter.connect();
+      this.state = "ONLINE";
+      this.reconnectDelayMs = 1000;
+      this.log("info", "Controlador físico conectado.");
+      if (this.adapter.getRelayStates) {
+        this.enqueue({ key: `relay-status-${Date.now()}`, type: "STATUS", timeoutMs: 2500 });
+        this.startRelayStatePolling();
+      }
+      void this.processQueue();
+    } catch (error) {
+      this.state = "OFFLINE";
+      this.resetRelayState();
+      this.stopRelayStatePolling();
+      this.log("warn", `Controlador indisponível: ${error instanceof Error ? error.message : "erro desconhecido"}`);
+      this.scheduleReconnect();
+    }
+  }
   async disconnect() { this.shouldReconnect = false; if (this.reconnectTimer) clearTimeout(this.reconnectTimer); this.reconnectTimer = undefined; this.stopRelayStatePolling(); await this.adapter.disconnect(); this.state = "OFFLINE"; this.resetRelayState(); this.log("info", "Controlador físico desconectado."); }
 
   enqueue(command: HardwareCommand) { if (this.inFlight.has(command.key) || this.completed.has(command.key) || this.queue.some(item => item.key === command.key)) { this.log("info", `Comando duplicado ignorado: ${command.key}`); return { accepted: false, reason: "DUPLICATE" as const }; } this.queue.push(command); this.markPending(command); this.log("info", `Comando enfileirado: ${command.type}.`); void this.persistCommand(command, "QUEUED"); void this.processQueue(); return { accepted: true, reason: "QUEUED" as const }; }
@@ -66,7 +112,7 @@ export class HardwareController {
   turnSirenOff(key: string) { return this.enqueue({ key, type: "SIREN_OFF" }); }
   triggerAlert(key: string, durationMs = 900) { return this.enqueue({ key, type: "ALERT", payload: { durationMs }, timeoutMs: 2500 }); }
 
-  private async processQueue() { if (this.processing || this.state !== "ONLINE") return; this.processing = true; while (this.queue.length > 0 && this.state === "ONLINE") { const command = this.queue.shift(); if (!command) break; this.inFlight.add(command.key); void this.persistCommand(command, "SENT"); try { const timeoutMs = command.timeoutMs ?? 2000; await Promise.race([this.adapter.send(command), new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout de comunicação")), timeoutMs))]); this.completed.add(command.key); this.markCommandSucceeded(command); this.syncAdapterRelayStates(); void this.persistCommand(command, "ACK"); this.log("info", `Comando confirmado: ${command.type}.`); } catch (error) { this.state = "OFFLINE"; this.resetRelayState(); this.stopRelayStatePolling(); void this.persistCommand(command, "FAILED"); this.log("error", `Falha no comando ${command.type}: ${error instanceof Error ? error.message : "erro desconhecido"}`); this.scheduleReconnect(); } finally { this.inFlight.delete(command.key); } } this.processing = false; }
+  private async processQueue() { if (this.processing || this.state !== "ONLINE") return; this.processing = true; while (this.queue.length > 0 && this.state === "ONLINE") { const command = this.queue.shift(); if (!command) break; this.inFlight.add(command.key); void this.persistCommand(command, "SENT"); try { const timeoutMs = command.timeoutMs ?? 2000; await Promise.race([this.adapter.send(command), new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout de comunicação")), timeoutMs))]); this.completed.add(command.key); this.markCommandSucceeded(command); this.syncAdapterRelayStates(); void this.persistCommand(command, "ACK"); this.log("info", `Comando confirmado: ${command.type}.`);     } catch (error) { this.state = "OFFLINE"; this.resetRelayState(); this.stopRelayStatePolling(); await this.adapter.disconnect().catch(() => undefined); void this.persistCommand(command, "FAILED"); this.log("error", `Falha no comando ${command.type}: ${error instanceof Error ? error.message : "erro desconhecido"}`); this.scheduleReconnect(); } finally { this.inFlight.delete(command.key); } } this.processing = false; }
 }
 
 export const hardwareController = new HardwareController();

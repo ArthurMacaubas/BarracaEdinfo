@@ -261,3 +261,8 @@
 - [x] Corrigir erro EPERM na remoção do banco SQLite temporário no Windows
 - [x] Validar a limpeza do SQLite, suíte de testes, build e banco local
 - [x] Sincronizar a correção do teste SQLite com o GitHub
+- [x] Corrigir o loop online/offline do Arduino Uno configurado na porta COM25
+- [x] Validar o protocolo serial e evitar sondagens concorrentes ou reabertura desnecessária da porta
+- [x] Atualizar o pnpm-lock.yaml para refletir package.json e recuperar o build gerenciado
+- [x] Validar check, testes, build e conexão serial simulada
+- [x] Sincronizar a correção da conexão COM25 e do lockfile com o GitHub
