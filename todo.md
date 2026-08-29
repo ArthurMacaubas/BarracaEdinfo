@@ -166,9 +166,9 @@
 - [x] Validar a duração salva no painel sem parâmetro de prévia na tela pública
 - [x] Testar que sponsor_transition_ms salvo é retornado pelo snapshot operacional
 - [x] Validar a duração persistida na tela pública sem parâmetro de prévia
-- [ ] Localizar uma logo adequada da Vilhetoy e preparar seu uso no painel
-- [ ] Cadastrar a Vilhetoy como patrocinadora ativa no carrossel público
-- [ ] Validar a logo da Vilhetoy sem cortes na tela pública em 1280x720
+- [x] Localizar uma logo adequada da Vilhetoy e preparar seu uso no painel
+- [x] Cadastrar a Vilhetoy como patrocinadora ativa no carrossel público
+- [x] Validar a logo da Vilhetoy sem cortes na tela pública em 1280x720
 - [x] Adicionar botão de exclusão confirmada para cada patrocinador no painel administrativo
 - [x] Cobrir e validar a exclusão de patrocinadores
 - [x] Substituir a confirmação nativa por diálogo seguro e consistente no painel
@@ -252,3 +252,5 @@
 - [x] Atualizar documentação, mapeamento de pinos e configuração serial para Arduino Uno
 - [x] Validar código, testes, build e banco após a reversão para Arduino Uno
 - [x] Sincronizar a versão Arduino Uno final com o GitHub
+- [x] Localizar e usar uma imagem pública associada à identidade visual da Vilhetoy, com origem registrada e adequada para patrocinador
+- [x] Validar explicitamente em 1280x720 que a arte da Vilhetoy aparece inteira, com evidência verificável
