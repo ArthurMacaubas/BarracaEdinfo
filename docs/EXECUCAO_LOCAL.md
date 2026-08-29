@@ -15,14 +15,23 @@ Instale o **Node.js 22 LTS**, o Git e o `npm`. Não é necessário instalar Mari
 | npm | Instala as dependências travadas no projeto. |
 | Arduino IDE | Grava o sketch dos relés, somente quando houver hardware. |
 
-No Ubuntu, macOS ou Windows, instale Git e habilite o gerenciador de pacotes do Node:
+No Ubuntu, macOS ou Windows, instale o Git, o Node.js 22 LTS e o npm. No Windows, use o instalador oficial do Node.js e o Git Bash ou PowerShell; não é necessário instalar ou habilitar pnpm.
+
+No Ubuntu, confirme a instalação com:
 
 ```bash
 sudo apt update
 sudo apt install -y git
-corepack enable
 node --version
 npm --version
+```
+
+No Windows, confirme no PowerShell:
+
+```powershell
+node --version
+npm --version
+git --version
 ```
 
 ## 2. Baixar e instalar o projeto
@@ -71,10 +80,17 @@ npm run db:push
 
 ## 5. Iniciar a barraca
 
-Para desenvolvimento ou operação local, execute:
+Para desenvolvimento ou operação local, execute o mesmo comando no Ubuntu, macOS ou Windows. O script usa `cross-env`, portanto a configuração `NODE_ENV` funciona em todas as plataformas:
 
 ```bash
 npm run dev
+```
+
+Para gerar e iniciar a versão de produção:
+
+```bash
+npm run build
+npm start
 ```
 
 Abra `http://localhost:3000`. Para acessar pelo caixa, tablet ou segundo monitor na mesma rede, abra o endereço IP local do computador local, por exemplo `http://192.168.0.50:3000`.

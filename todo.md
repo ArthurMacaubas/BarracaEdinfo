@@ -254,3 +254,7 @@
 - [x] Sincronizar a versão Arduino Uno final com o GitHub
 - [x] Localizar e usar uma imagem pública associada à identidade visual da Vilhetoy, com origem registrada e adequada para patrocinador
 - [x] Validar explicitamente em 1280x720 que a arte da Vilhetoy aparece inteira, com evidência verificável
+- [x] Corrigir conflito de peer dependency entre Vite 7 e @builder.io/vite-plugin-jsx-loc no npm
+- [x] Tornar os scripts npm de desenvolvimento multiplataforma no Windows
+- [x] Validar npm install, db:verify, check, testes e build após a correção
+- [ ] Sincronizar a correção de instalação e scripts com o GitHub
